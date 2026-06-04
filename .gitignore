@@ -1,0 +1,19 @@
+# IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Компиляция и сборка
+out/
+target/
+build/
+*.class
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# Логи и временные файлы
+*.log
+*.tmp

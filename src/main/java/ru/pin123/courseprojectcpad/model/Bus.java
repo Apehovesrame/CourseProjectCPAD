@@ -1,0 +1,43 @@
+package ru.pin123.courseprojectcpad.model;
+
+public class Bus {
+    private Long busId;
+    private String licensePlate;
+    private String model;
+    private int seatCapacity;
+
+    public Bus() {
+    }
+
+    public Long getBusId() {
+        return busId;
+    }
+
+    public void setBusId(Long busId) {
+        this.busId = busId;
+    }
+
+    public String getLicensePlate() {
+        return licensePlate;
+    }
+
+    public void setLicensePlate(String licensePlate) {
+        this.licensePlate = licensePlate;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public int getSeatCapacity() {
+        return seatCapacity;
+    }
+
+    public void setSeatCapacity(int seatCapacity) {
+        this.seatCapacity = seatCapacity;
+    }
+}

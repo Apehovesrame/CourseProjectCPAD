@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<HBox spacing="20.0" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.TicketSellController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <VBox prefWidth="350.0" spacing="10.0">
+        <Label text="%lbl.cashbox">
+            <font>
+                <Font name="System Bold" size="20.0" />
+            </font>
+        </Label>
+        <ListView fx:id="tripsListView" prefHeight="600.0" style="-fx-background-color: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS" />
+    </VBox>
+
+    <VBox prefWidth="600.0" spacing="20.0" styleClass="card" HBox.hgrow="ALWAYS">
+
+        <Label text="%lbl.checkout" textFill="#333333">
+            <font>
+                <Font name="System Bold" size="18.0" />
+            </font>
+        </Label>
+
+        <HBox spacing="30.0">
+            <VBox prefHeight="241.0" prefWidth="353.0" spacing="15.0" HBox.hgrow="ALWAYS">
+                <Label text="%lbl.where" />
+                <ComboBox fx:id="stopComboBox" maxWidth="Infinity" promptText="%combo.stop" style="-fx-background-color: #f0f0f0; -fx-border-color: #cccccc; -fx-border-radius: 4;" />
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <Label text="%lbl.price" textFill="#666666" />
+                    <Label fx:id="costLabel" text="0.00" textFill="#4caf50">
+                        <font><Font name="System Bold" size="18.0" /></font>
+                    </Label>
+                </HBox>
+
+                <Label text="%lbl.passenger" />
+                <TextField fx:id="fioField" prefHeight="39.0" prefWidth="395.0" promptText="%prompt.fio" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
+                <TextField fx:id="passportField" promptText="%prompt.passport" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
+            </VBox>
+
+            <VBox alignment="TOP_CENTER" spacing="10.0">
+                <Label text="%lbl.seat" />
+                <GridPane fx:id="seatsGrid" alignment="CENTER" hgap="10.0" vgap="10.0">
+                    <children>
+                        <Button mnemonicParsing="false" text="1" />
+                        <Button mnemonicParsing="false" text="2" GridPane.columnIndex="1" />
+                        <Button mnemonicParsing="false" text="3" GridPane.rowIndex="1" />
+                        <Button mnemonicParsing="false" text="4" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Button mnemonicParsing="false" text="5" GridPane.rowIndex="2" />
+                        <Button mnemonicParsing="false" text="6" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    </children>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                    </rowConstraints>
+                    <columnConstraints>
+                        <ColumnConstraints />
+                        <ColumnConstraints minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints></GridPane>
+            </VBox>
+        </HBox>
+
+        <Button fx:id="sellButton" maxWidth="Infinity" onAction="#onSellTicketClick" prefHeight="50.0" styleClass="btn-warning" text="%btn.sell">
+            <VBox.margin>
+                <Insets top="20.0" />
+            </VBox.margin>
+        </Button>
+    </VBox>
+</HBox>
