@@ -16,7 +16,6 @@ import java.util.ResourceBundle;
 
 public class TicketSellController implements Initializable {
 
-    // --- Элементы интерфейса из вашего FXML файла ---
     @FXML private ComboBox<Trip> comboTrips;
     @FXML private ComboBox<Passenger> comboPassengers;
     @FXML private ComboBox<Stop> comboStops;
@@ -26,12 +25,8 @@ public class TicketSellController implements Initializable {
     private final TicketingService ticketingService = new TicketingService();
     private final StopDaoImpl stopDao = new StopDaoImpl();
 
-    // Временная заглушка: текущий авторизованный кассир
-    private User currentUser = new User(1L, "Кассир", "Тестовый");
-
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Загружаем в ComboBox список остановок при инициализации формы
         try {
             List<Stop> stops = stopDao.findAll();
             comboStops.setItems(FXCollections.observableArrayList(stops));
@@ -40,12 +35,16 @@ public class TicketSellController implements Initializable {
         }
     }
 
-    /**
-     * Этот метод срабатывает при нажатии на кнопку "Оформить билет"
-     */
     @FXML
     public void onSellTicketClick(ActionEvent event) {
         try {
+            // Безопасно получаем пользователя из сессии прямо в момент клика
+            User currentUser = Session.getCurrentUser();
+            if (currentUser == null) {
+                showAlert(Alert.AlertType.ERROR, "Ошибка сессии", "Пользователь не авторизован в системе!");
+                return;
+            }
+
             Trip selectedTrip = comboTrips.getValue();
             Passenger selectedPassenger = comboPassengers.getValue();
             Stop selectedStop = comboStops.getValue();
@@ -62,7 +61,7 @@ public class TicketSellController implements Initializable {
                     selectedTrip,
                     selectedPassenger,
                     selectedStop,
-                    currentUser,
+                    currentUser, // Передаем реального пользователя
                     seatNumber,
                     cost
             );

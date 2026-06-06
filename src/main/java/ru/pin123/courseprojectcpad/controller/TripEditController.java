@@ -1,7 +1,6 @@
 package ru.pin123.courseprojectcpad.controller;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -9,10 +8,7 @@ import javafx.scene.control.*;
 import ru.pin123.courseprojectcpad.dao.BusDaoImpl;
 import ru.pin123.courseprojectcpad.dao.DriverDaoImpl;
 import ru.pin123.courseprojectcpad.dao.RouteDaoImpl;
-import ru.pin123.courseprojectcpad.model.Bus;
-import ru.pin123.courseprojectcpad.model.Driver;
-import ru.pin123.courseprojectcpad.model.Route;
-import ru.pin123.courseprojectcpad.model.Trip;
+import ru.pin123.courseprojectcpad.model.*;
 import ru.pin123.courseprojectcpad.service.TripService;
 
 import java.net.URL;
@@ -34,17 +30,14 @@ public class TripEditController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            // Загружаем данные из БД
             List<Route> routesFromDB = routeDao.findAll();
             List<Bus> busesFromDB = busDao.findAll();
             List<Driver> driversFromDB = driverDao.findAll();
 
-            // Устанавливаем данные в выпадающие списки и ListView
             comboRoutes.setItems(FXCollections.observableArrayList(routesFromDB));
             comboBuses.setItems(FXCollections.observableArrayList(busesFromDB));
             listDrivers.setItems(FXCollections.observableArrayList(driversFromDB));
 
-            // Настраиваем ListView, чтобы можно было выбирать нескольких водителей с зажатым Ctrl/Shift
             listDrivers.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         } catch (Exception e) {
@@ -55,6 +48,13 @@ public class TripEditController implements Initializable {
     @FXML
     public void onSaveTripClick(ActionEvent event) {
         try {
+            // Получаем пользователя, создающего рейс, из глобальной сессии
+            User currentUser = Session.getCurrentUser();
+            if (currentUser == null) {
+                showAlert(Alert.AlertType.ERROR, "Ошибка сессии", "Пользователь не авторизован в системе!");
+                return;
+            }
+
             Route selectedRoute = comboRoutes.getValue();
             Bus selectedBus = comboBuses.getValue();
 
@@ -63,28 +63,22 @@ public class TripEditController implements Initializable {
                 return;
             }
 
-            // Получаем список выбранных водителей из ListView
             List<Driver> selectedDrivers = new ArrayList<>(listDrivers.getSelectionModel().getSelectedItems());
 
-            // Собираем объект рейса
             Trip newTrip = new Trip();
             newTrip.setRoute(selectedRoute);
             newTrip.setBus(selectedBus);
+            newTrip.setCreatedByUser(currentUser); // Передаем реального авторизованного юзера
 
-            // Временная заглушка создателя рейса (потом свяжем с сессией пользователя)
-            newTrip.setCreatedByUser(new ru.pin123.courseprojectcpad.model.User(1L, "Диспетчер", "Тестовый"));
+            // Заглушка для демонстрации дат (в продакшене заменяется на данные из DatePicker)
+            newTrip.setDepartureDatetime(java.time.LocalDateTime.now().toString());
+            newTrip.setArrivalDatetime(java.time.LocalDateTime.now().plusHours(5).toString());
 
-            // Заглушка для демонстрации дат (в реальности данные берутся из DatePicker/TextField)
-            newTrip.setDepartureDatetime(java.text.MessageFormat.format("{0}", java.time.LocalDateTime.now()));
-            newTrip.setArrivalDatetime(java.text.MessageFormat.format("{0}", java.time.LocalDateTime.now().plusHours(5)));
-
-            // Передаем в сервис на проверку бизнес-логики и сохранение в транзакции
             tripService.createTrip(newTrip, selectedDrivers);
 
             showAlert(Alert.AlertType.INFORMATION, "Успех", "Рейс успешно добавлен!");
 
         } catch (IllegalArgumentException e) {
-            // Сюда прилетит ошибка про двух водителей, если маршрут дальний
             showAlert(Alert.AlertType.ERROR, "Ошибка бизнес-логики", e.getMessage());
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Системная ошибка", "Не удалось сохранить рейс: " + e.getMessage());
