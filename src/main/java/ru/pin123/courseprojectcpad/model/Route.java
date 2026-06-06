@@ -53,4 +53,9 @@ public class Route {
         // Отображение: "№101: Муром - Владимир"
         return "№" + routeNumber + ": " + departurePoint + " - " + destinationPoint;
     }
+    public String getFormattedDuration() {
+        int hours = durationMinutes / 60;
+        int minutes = durationMinutes % 60;
+        return hours + " ч " + minutes + " мин";
+    }
 }

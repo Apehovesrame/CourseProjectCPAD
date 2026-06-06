@@ -73,7 +73,61 @@ public class TripDaoImpl implements TripDao {
         }
     }
 
+    public void update(Trip trip, List<Driver> drivers) {
+        String sqlTrip = "UPDATE trips SET route_id = ?, bus_id = ?, departure_datetime = ?, arrival_datetime = ? WHERE trip_id = ?";
+        String sqlDelDrivers = "DELETE FROM trips_drivers WHERE trip_id = ?";
+        String sqlInsDrivers = "INSERT INTO trips_drivers (trip_id, driver_id) VALUES (?, ?)";
 
+        try (Connection conn = DBHelper.getConnection()) {
+            conn.setAutoCommit(false); // Начинаем транзакцию
+
+            try (PreparedStatement pstmtTrip = conn.prepareStatement(sqlTrip);
+                 PreparedStatement pstmtDel = conn.prepareStatement(sqlDelDrivers);
+                 PreparedStatement pstmtIns = conn.prepareStatement(sqlInsDrivers)) {
+
+                // 1. Обновляем рейс
+                pstmtTrip.setLong(1, trip.getRoute().getRouteId());
+                pstmtTrip.setLong(2, trip.getBus().getBusId());
+                pstmtTrip.setTimestamp(3, Timestamp.valueOf(trip.getDepartureDatetime()));
+                pstmtTrip.setTimestamp(4, Timestamp.valueOf(trip.getArrivalDatetime()));
+                pstmtTrip.setLong(5, trip.getTripId());
+                pstmtTrip.executeUpdate();
+
+                // 2. Удаляем старых привязанных водителей
+                pstmtDel.setLong(1, trip.getTripId());
+                pstmtDel.executeUpdate();
+
+                // 3. Добавляем новых водителей
+                for (Driver driver : drivers) {
+                    pstmtIns.setLong(1, trip.getTripId());
+                    pstmtIns.setLong(2, driver.getDriverId());
+                    pstmtIns.addBatch();
+                }
+                pstmtIns.executeBatch();
+
+                conn.commit(); // Фиксируем изменения
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new RuntimeException("Ошибка при обновлении рейса", e);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка БД", e);
+        }
+    }
+
+    public void delete(Long tripId) {
+        // Мягкое удаление (чтобы проданные билеты не сломались)
+        String sql = "UPDATE trips SET is_deleted = true WHERE trip_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, tripId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при удалении рейса", e);
+        }
+    }
 
     @Override
     public Optional<Trip> findById(Long id) {

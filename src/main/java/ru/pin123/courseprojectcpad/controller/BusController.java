@@ -8,16 +8,18 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Bus;
 import ru.pin123.courseprojectcpad.service.BusService;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
-
 
 public class BusController {
     @FXML private TableView<Bus> busTable;
@@ -25,6 +27,9 @@ public class BusController {
     @FXML private TableColumn<Bus, String> modelColumn;
     @FXML private TableColumn<Bus, String> plateColumn;
     @FXML private TableColumn<Bus, Number> capacityColumn;
+
+    // Добавили ImageView для отображения фото выбранного автобуса
+    @FXML private ImageView busImage;
 
     private final ObservableList<Bus> busList = FXCollections.observableArrayList();
     private final BusService busService = new BusService(); // Подключаем сервис
@@ -36,8 +41,26 @@ public class BusController {
         plateColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getLicensePlate()));
         capacityColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getSeatCapacity()));
 
+        // Добавляем слушатель: при клике на строку таблицы показываем фото автобуса
+        busTable.getSelectionModel().selectedItemProperty().addListener(
+                (observable, oldValue, newValue) -> showBusDetails(newValue)
+        );
+
         busTable.setItems(busList);
         loadData(); // Загружаем данные из БД
+    }
+
+    private void showBusDetails(Bus bus) {
+        if (bus != null && bus.getPhotoPath() != null && !bus.getPhotoPath().isEmpty()) {
+            File file = new File(bus.getPhotoPath());
+            if (file.exists()) {
+                busImage.setImage(new Image(file.toURI().toString()));
+            } else {
+                busImage.setImage(null); // Если файл удален с диска
+            }
+        } else {
+            busImage.setImage(null); // Очищаем картинку, если фото нет
+        }
     }
 
     private void loadData() {
@@ -65,8 +88,10 @@ public class BusController {
         if (selectedBus != null) {
             boolean okClicked = showBusEditDialog(selectedBus);
             if (okClicked) {
-                busService.saveBus(selectedBus); // Обновляем в базе
+                // В вашем сервисе метод saveBus, судя по всему, работает и как update
+                busService.saveBus(selectedBus);
                 loadData();
+                showBusDetails(selectedBus); // Обновляем картинку
             }
         } else {
             new Alert(Alert.AlertType.WARNING, "Выберите автобус!").showAndWait();
@@ -79,16 +104,17 @@ public class BusController {
         if (selectedBus != null) {
             busService.deleteBus(selectedBus.getBusId());
             loadData();
+        } else {
+            new Alert(Alert.AlertType.WARNING, "Выберите автобус для удаления!").showAndWait();
         }
     }
 
     // Открытие модального окна (Задание из Лабораторной №7)
     private boolean showBusEditDialog(Bus bus) {
-
         try {
-
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/buses-view.fxml"), bundle);
+            // ИСПРАВЛЕН ПУТЬ НА bus-edit-view.fxml
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/bus-edit-view.fxml"), bundle);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();

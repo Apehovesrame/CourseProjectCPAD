@@ -8,11 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class BusDaoImpl { // Если у вас есть интерфейс BusDao, добавьте "implements BusDao"
+public class BusDaoImpl {
 
-    /**
-     * Получить все автобусы из базы (для списков выбора и таблиц)
-     */
     public List<Bus> findAll() {
         List<Bus> buses = new ArrayList<>();
         String sql = "SELECT * FROM buses ORDER BY model";
@@ -27,7 +24,7 @@ public class BusDaoImpl { // Если у вас есть интерфейс BusD
                 bus.setModel(rs.getString("model"));
                 bus.setLicensePlate(rs.getString("license_plate"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
-
+                bus.setPhotoPath(rs.getString("photo_path")); // <-- Чтение фото
                 buses.add(bus);
             }
         } catch (SQLException e) {
@@ -37,12 +34,14 @@ public class BusDaoImpl { // Если у вас есть интерфейс BusD
     }
 
     public void save(Bus bus) {
-        String sql = "INSERT INTO buses (model, license_plate, seat_capacity) VALUES (?, ?, ?)";
+        // Добавили photo_path в INSERT
+        String sql = "INSERT INTO buses (model, license_plate, seat_capacity, photo_path) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
+            pstmt.setString(4, bus.getPhotoPath()); // <-- Сохранение фото
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при сохранении автобуса", e);
@@ -50,13 +49,15 @@ public class BusDaoImpl { // Если у вас есть интерфейс BusD
     }
 
     public void update(Bus bus) {
-        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ? WHERE bus_id = ?";
+        // Добавили photo_path в UPDATE
+        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ?, photo_path = ? WHERE bus_id = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
-            pstmt.setLong(4, bus.getBusId());
+            pstmt.setString(4, bus.getPhotoPath()); // <-- Обновление фото
+            pstmt.setLong(5, bus.getBusId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при обновлении автобуса", e);
@@ -87,6 +88,7 @@ public class BusDaoImpl { // Если у вас есть интерфейс BusD
                     bus.setModel(rs.getString("model"));
                     bus.setLicensePlate(rs.getString("license_plate"));
                     bus.setSeatCapacity(rs.getInt("seat_capacity"));
+                    bus.setPhotoPath(rs.getString("photo_path")); // <-- Чтение фото
                     return Optional.of(bus);
                 }
             }

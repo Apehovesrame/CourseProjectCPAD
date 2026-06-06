@@ -8,6 +8,7 @@
                 <TableColumn fx:id="colNumber" text="№ Маршрута" prefWidth="100"/>
                 <TableColumn fx:id="colFrom" text="Откуда" prefWidth="150"/>
                 <TableColumn fx:id="colTo" text="Куда" prefWidth="150"/>
+                <TableColumn fx:id="colDuration" text="Время в пути" prefWidth="120"/>
             </columns>
         </TableView>
 

@@ -18,8 +18,13 @@
                 <Label text="Куда:" GridPane.rowIndex="2" />
                 <TextField fx:id="tfTo" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-                <Label text="Время в пути (мин):" GridPane.rowIndex="3" />
-                <TextField fx:id="tfDuration" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <Label text="Время в пути:" GridPane.rowIndex="3" />
+                <HBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <TextField fx:id="tfHours" promptText="Часы" prefWidth="70"/>
+                    <Label text="ч." translateY="4"/>
+                    <TextField fx:id="tfMinutes" promptText="Мин" prefWidth="70"/>
+                    <Label text="мин." translateY="4"/>
+                </HBox>
             </children>
         </GridPane>
         <HBox layoutX="220.0" layoutY="200.0" spacing="10.0">

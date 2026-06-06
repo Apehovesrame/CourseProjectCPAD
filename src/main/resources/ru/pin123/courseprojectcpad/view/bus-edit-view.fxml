@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="350.0" prefWidth="420.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.BusEditController">
+    <children>
+        <GridPane layoutX="20.0" layoutY="20.0" prefHeight="260.0" prefWidth="380.0" vgap="15" hgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="260.0" minWidth="10.0" prefWidth="260.0" />
+            </columnConstraints>
+            <children>
+                <Label text="Марка/Модель:" GridPane.rowIndex="0" />
+                <TextField fx:id="tfModel" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Например: ПАЗ-3205" />
+
+                <Label text="Госномер:" GridPane.rowIndex="1" />
+                <TextField fx:id="tfLicensePlate" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="А123АА 33" />
+
+                <Label text="Вместимость:" GridPane.rowIndex="2" />
+                <TextField fx:id="tfSeatCapacity" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Количество мест" />
+
+                <Label text="Фотография:" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <Button text="Выбрать файл с ПК..." onAction="#handleChoosePhoto" style="-fx-cursor: hand;" />
+                    <ImageView fx:id="imgPreview" fitWidth="250" fitHeight="140" preserveRatio="true" />
+                </VBox>
+            </children>
+        </GridPane>
+
+        <HBox layoutX="230.0" layoutY="300.0" spacing="10.0">
+            <children>
+                <Button onAction="#handleOk" text="Сохранить" prefWidth="85" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Button onAction="#handleCancel" text="Отмена" prefWidth="75" style="-fx-cursor: hand;" />
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

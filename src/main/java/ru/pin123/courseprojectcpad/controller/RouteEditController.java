@@ -12,6 +12,8 @@ public class RouteEditController {
     @FXML private TextField tfFrom;
     @FXML private TextField tfTo;
     @FXML private TextField tfDuration;
+    @FXML private TextField tfHours;
+    @FXML private TextField tfMinutes;
 
     private Stage dialogStage;
     private Route route;
@@ -27,6 +29,8 @@ public class RouteEditController {
         if (route.getDeparturePoint() != null) tfFrom.setText(route.getDeparturePoint());
         if (route.getDestinationPoint() != null) tfTo.setText(route.getDestinationPoint());
         if (route.getDurationMinutes() > 0) tfDuration.setText(String.valueOf(route.getDurationMinutes()));
+        if (route.getDurationMinutes() > 0) {tfHours.setText(String.valueOf(route.getDurationMinutes() / 60)); tfMinutes.setText(String.valueOf(route.getDurationMinutes() % 60));
+        }
     }
 
     public boolean isOkClicked() {
@@ -40,6 +44,10 @@ public class RouteEditController {
             route.setDeparturePoint(tfFrom.getText().trim());
             route.setDestinationPoint(tfTo.getText().trim());
             route.setDurationMinutes(Integer.parseInt(tfDuration.getText().trim()));
+
+            int hours = tfHours.getText().isEmpty() ? 0 : Integer.parseInt(tfHours.getText().trim());
+            int minutes = tfMinutes.getText().isEmpty() ? 0 : Integer.parseInt(tfMinutes.getText().trim());
+            route.setDurationMinutes(hours * 60 + minutes);
 
             isOkClicked = true;
             dialogStage.close();

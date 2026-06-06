@@ -6,18 +6,13 @@ public class Driver {
     private String firstName;
     private String middleName;
 
-    // Пустой конструктор
-    public Driver() {}
+    // Новые поля
+    private int age;
+    private String passport;
+    private String photoPath;
 
-    // Конструктор (если понадобится для создания объекта)
-    public Driver(Long driverId, String lastName, String firstName, String middleName) {
-        this.driverId = driverId;
-        this.lastName = lastName;
-        this.firstName = firstName;
-        this.middleName = middleName;
+    public Driver() {
     }
-
-    // --- ГЕТТЕРЫ И СЕТТЕРЫ (именно они нужны вашему DAO) ---
 
     public Long getDriverId() {
         return driverId;
@@ -51,25 +46,33 @@ public class Driver {
         this.middleName = middleName;
     }
 
-    // --- Ваш метод toString() ---
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getPassport() {
+        return passport;
+    }
+
+    public void setPassport(String passport) {
+        this.passport = passport;
+    }
+
+    public String getPhotoPath() {
+        return photoPath;
+    }
+
+    public void setPhotoPath(String photoPath) {
+        this.photoPath = photoPath;
+    }
+
+    // Переопределяем toString() для красивого отображения в списке выбора (например, при создании рейса)
     @Override
     public String toString() {
-        String l = (lastName == null) ? "" : lastName;
-        String f = (firstName == null) ? "" : firstName;
-        String m = (middleName == null) ? "" : middleName;
-
-        StringBuilder fullName = new StringBuilder();
-
-        if (!l.isEmpty()) fullName.append(l);
-        if (!f.isEmpty()) {
-            if (fullName.length() > 0) fullName.append(" ");
-            fullName.append(f);
-        }
-        if (!m.isEmpty()) {
-            if (fullName.length() > 0) fullName.append(" ");
-            fullName.append(m);
-        }
-
-        return fullName.length() > 0 ? fullName.toString() : "Водитель ID: " + driverId;
+        return lastName + " " + firstName + (middleName != null && !middleName.isEmpty() ? " " + middleName : "");
     }
 }

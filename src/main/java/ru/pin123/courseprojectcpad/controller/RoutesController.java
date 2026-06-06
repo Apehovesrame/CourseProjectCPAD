@@ -26,6 +26,9 @@ public class RoutesController implements Initializable {
     @FXML private TableColumn<Route, String> colFrom;
     @FXML private TableColumn<Route, String> colTo;
 
+    // ДОБАВЛЕНО: Объявление колонки для времени в пути
+    @FXML private TableColumn<Route, String> colDuration;
+
     private final RouteDaoImpl routeDao = new RouteDaoImpl();
     private final ObservableList<Route> routeList = FXCollections.observableArrayList();
 
@@ -34,6 +37,7 @@ public class RoutesController implements Initializable {
         colNumber.setCellValueFactory(new PropertyValueFactory<>("routeNumber"));
         colFrom.setCellValueFactory(new PropertyValueFactory<>("departurePoint"));
         colTo.setCellValueFactory(new PropertyValueFactory<>("destinationPoint"));
+        colDuration.setCellValueFactory(new PropertyValueFactory<>("formattedDuration"));
 
         routeTable.setItems(routeList);
         loadData();
