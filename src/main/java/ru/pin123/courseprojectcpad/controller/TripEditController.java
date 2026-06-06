@@ -1,53 +1,65 @@
 package ru.pin123.courseprojectcpad.controller;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import ru.pin123.courseprojectcpad.dao.BusDaoImpl;
+import ru.pin123.courseprojectcpad.dao.DriverDaoImpl;
+import ru.pin123.courseprojectcpad.dao.RouteDaoImpl;
+import ru.pin123.courseprojectcpad.model.Bus;
 import ru.pin123.courseprojectcpad.model.Driver;
 import ru.pin123.courseprojectcpad.model.Route;
 import ru.pin123.courseprojectcpad.model.Trip;
 import ru.pin123.courseprojectcpad.service.TripService;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 
 public class TripEditController implements Initializable {
 
     @FXML private ComboBox<Route> comboRoutes;
     @FXML private ComboBox<Bus> comboBuses;
-    // В JavaFX для выбора нескольких элементов часто используют ListView с MultipleSelectionModel
     @FXML private ListView<Driver> listDrivers;
 
     private final TripService tripService = new TripService();
-
     private final RouteDaoImpl routeDao = new RouteDaoImpl();
     private final BusDaoImpl busDao = new BusDaoImpl();
-
-    // Загружаем в ListView список водителей для назначения на рейс
-    List<Driver> drivers = new DriverDaoImpl().findAll();
-    listDrivers.setItems(FXCollections.observableArrayList(drivers));
+    private final DriverDaoImpl driverDao = new DriverDaoImpl();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Загружаем данные из БД
-        List<Route> routesFromDB = routeDao.findAll();
-        List<Bus> busesFromDB = busDao.findAll();
+        try {
+            // Загружаем данные из БД
+            List<Route> routesFromDB = routeDao.findAll();
+            List<Bus> busesFromDB = busDao.findAll();
+            List<Driver> driversFromDB = driverDao.findAll();
 
-        // Превращаем обычный List в специальный список JavaFX (ObservableList)
-        ObservableList<Route> fxRoutes = FXCollections.observableArrayList(routesFromDB);
-        ObservableList<Bus> fxBuses = FXCollections.observableArrayList(busesFromDB);
+            // Устанавливаем данные в выпадающие списки и ListView
+            comboRoutes.setItems(FXCollections.observableArrayList(routesFromDB));
+            comboBuses.setItems(FXCollections.observableArrayList(busesFromDB));
+            listDrivers.setItems(FXCollections.observableArrayList(driversFromDB));
 
-        // Устанавливаем данные в ComboBox!
-        comboRoutes.setItems(fxRoutes);
-        comboBuses.setItems(fxBuses);
+            // Настраиваем ListView, чтобы можно было выбирать нескольких водителей с зажатым Ctrl/Shift
+            listDrivers.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Ошибка БД", "Не удалось загрузить данные: " + e.getMessage());
+        }
     }
 
     @FXML
     public void onSaveTripClick(ActionEvent event) {
         try {
             Route selectedRoute = comboRoutes.getValue();
-            if (selectedRoute == null) {
-                showAlert(Alert.AlertType.WARNING, "Внимание", "Выберите маршрут!");
+            Bus selectedBus = comboBuses.getValue();
+
+            if (selectedRoute == null || selectedBus == null) {
+                showAlert(Alert.AlertType.WARNING, "Внимание", "Пожалуйста, выберите маршрут и автобус!");
                 return;
             }
 
@@ -57,18 +69,25 @@ public class TripEditController implements Initializable {
             // Собираем объект рейса
             Trip newTrip = new Trip();
             newTrip.setRoute(selectedRoute);
-            // ... (установка других полей: автобус, время и т.д.)
+            newTrip.setBus(selectedBus);
 
-            // Передаем в сервис на проверку и сохранение
+            // Временная заглушка создателя рейса (потом свяжем с сессией пользователя)
+            newTrip.setCreatedByUser(new ru.pin123.courseprojectcpad.model.User(1L, "Диспетчер", "Тестовый"));
+
+            // Заглушка для демонстрации дат (в реальности данные берутся из DatePicker/TextField)
+            newTrip.setDepartureDatetime(java.text.MessageFormat.format("{0}", java.time.LocalDateTime.now()));
+            newTrip.setArrivalDatetime(java.text.MessageFormat.format("{0}", java.time.LocalDateTime.now().plusHours(5)));
+
+            // Передаем в сервис на проверку бизнес-логики и сохранение в транзакции
             tripService.createTrip(newTrip, selectedDrivers);
 
             showAlert(Alert.AlertType.INFORMATION, "Успех", "Рейс успешно добавлен!");
 
         } catch (IllegalArgumentException e) {
-            // Сюда прилетит ошибка про двух водителей, если маршрут дальний!
+            // Сюда прилетит ошибка про двух водителей, если маршрут дальний
             showAlert(Alert.AlertType.ERROR, "Ошибка бизнес-логики", e.getMessage());
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Системная ошибка", "Не удалось сохранить рейс.");
+            showAlert(Alert.AlertType.ERROR, "Системная ошибка", "Не удалось сохранить рейс: " + e.getMessage());
         }
     }
 
