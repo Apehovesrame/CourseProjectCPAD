@@ -2,21 +2,17 @@ package ru.pin123.courseprojectcpad.model;
 
 public class User {
     private Long userId;
+    private String login;
     private String lastName;
     private String firstName;
     private String middleName;
-    private String login;
 
-    // Конструктор (полезен для создания объекта User при авторизации)
-    public User() {}
+    // ДОБАВЛЕНО: Поле для связи пользователя с его ролью (Кассир/Админ)
+    private Role role;
 
-    public User(Long userId, String firstName, String lastName) {
-        this.userId = userId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User() {
     }
 
-    // Геттеры и сеттеры для всех полей
     public Long getUserId() {
         return userId;
     }
@@ -25,12 +21,12 @@ public class User {
         this.userId = userId;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public String getLogin() {
+        return login;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getLastName() {
@@ -41,6 +37,14 @@ public class User {
         this.lastName = lastName;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
     public String getMiddleName() {
         return middleName;
     }
@@ -49,11 +53,12 @@ public class User {
         this.middleName = middleName;
     }
 
-    public String getLogin() {
-        return login;
+    // ДОБАВЛЕНО: Геттер и сеттер для роли
+    public Role getRole() {
+        return role;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

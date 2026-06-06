@@ -115,6 +115,11 @@ public class MainController {
         loadView("/ru/pin123/courseprojectcpad/view/reports-view.fxml");
     }
 
+    @FXML
+    void onUsersClick(ActionEvent event) {
+        loadView("/ru/pin123/courseprojectcpad/view/users-view.fxml");
+    }
+
     // --- БЛОК ВЫХОДА ---
 
     @FXML

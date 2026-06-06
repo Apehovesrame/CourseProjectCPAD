@@ -25,6 +25,9 @@
             <Label text="АНАЛИТИКА" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
             <Button text="Отчеты и статистика" onAction="#onReportsClick" prefWidth="190.0" prefHeight="30.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
 
+            <Label text="АДМИНИСТРИРОВАНИЕ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
+            <Button text="Управление сотрудниками" onAction="#onUsersClick" prefWidth="190.0" prefHeight="30.0"/>
+
             <Label text="СПРАВОЧНИКИ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
             <Button text="Справочник маршрутов" onAction="#onRoutesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
             <Button text="Справочник автобусов" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>

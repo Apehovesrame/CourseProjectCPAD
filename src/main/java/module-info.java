@@ -3,6 +3,7 @@ module ru.pin123.courseprojectcpad {
     requires javafx.fxml;
     requires java.sql;
     requires org.slf4j;
+    requires java.management;
 
 
     opens ru.pin123.courseprojectcpad to javafx.fxml;
