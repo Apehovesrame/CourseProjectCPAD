@@ -63,7 +63,9 @@ public class ReportsController implements Initializable {
 
             lblTotalSum.setText("Итого выручка: " + totalSum + " руб.");
 
-        } catch (IllegalArgumentException | RuntimeException e) {
+        } catch (RuntimeException e) {
+            // Этого достаточно: RuntimeException перехватит и IllegalArgumentException,
+            // и любые другие ошибки, возникшие в сервисе или DAO
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Ошибка формирования отчета");
             alert.setHeaderText(null);

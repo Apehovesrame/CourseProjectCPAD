@@ -1,51 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<BorderPane prefHeight="700.0" prefWidth="1100.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.MainController">
+<BorderPane prefWidth="900.0" prefHeight="600.0"
+            xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ru.pin123.courseprojectcpad.controller.MainController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" prefHeight="60.0" style="-fx-background-color: white; -fx-padding: 0 20 0 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);" BorderPane.alignment="CENTER">
-            <children>
-                <!-- Заголовок берем из файла свойств -->
-                <Label text="%app.title" textFill="#1a1a1a">
-                    <font>
-                        <Font name="System Bold" size="24.0" />
-                    </font>
-                </Label>
-
-                <!-- Пустой растягивающийся элемент, чтобы прижать меню вправо -->
-                <Region HBox.hgrow="ALWAYS" />
-
-                <!-- Наш переключатель языка -->
-                <ComboBox fx:id="langSelector" onAction="#onLanguageChange" prefWidth="120.0" />
-            </children>
+        <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-padding: 10 20; -fx-background-color: #e0e0e0; -fx-border-color: #ccc; -fx-border-width: 0 0 1 0;">
+            <Label fx:id="lblGreeting" text="Добро пожаловать!" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Язык / Language:" />
+            <ComboBox fx:id="langSelector" onAction="#onLanguageChange" prefWidth="120.0" />
+            <Button text="Выйти" onAction="#onLogoutClick" style="-fx-cursor: hand;"/>
         </HBox>
     </top>
 
+    <left>
+        <VBox spacing="10.0" style="-fx-padding: 15; -fx-background-color: #f9f9f9; -fx-border-color: #ccc; -fx-border-width: 0 1 0 0;" prefWidth="220.0">
+            <Label text="УПРАВЛЕНИЕ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold;"/>
+            <Button text="Продажа билета" onAction="#onTicketSellClick" prefWidth="190.0" prefHeight="35.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="Расписание рейсов" onAction="#onTripsClick" prefWidth="190.0" prefHeight="30.0"/>
+
+            <Label text="СПРАВОЧНИКИ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
+            <Button text="Справочник маршрутов" onAction="#onRoutesClick" prefWidth="190.0" prefHeight="30.0"/>
+            <Button text="Справочник автобусов" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0"/>
+            <Button text="Справочник водителей" onAction="#onDriversClick" prefWidth="190.0" prefHeight="30.0"/>
+            <Button text="База пассажиров" onAction="#onPassengersClick" prefWidth="190.0" prefHeight="30.0"/>
+
+            <Region VBox.vgrow="ALWAYS" />
+            <Button text="Выход из программы" onAction="#onExitClick" prefWidth="190.0" prefHeight="30.0" style="-fx-text-fill: #D32F2F;"/>
+        </VBox>
+    </left>
+
     <center>
-        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-            <tabs>
-                <Tab text="%tab.tickets">
-                    <content>
-                        <fx:include source="ticket-sell-view.fxml" />
-                    </content>
-                </Tab>
-                <Tab text="%tab.trips">
-                    <content>
-                        <Label />
-                    </content>
-                </Tab>
-                <Tab text="%tab.routes" />
-                <Tab text="%tab.buses">
-                    <content>
-                        <fx:include source="buses-table.fxml" />
-                    </content>
-                </Tab>
-                <Tab text="%tab.drivers" />
-                <Tab text="%tab.employees" />
-            </tabs>
+        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Стартовая страница">
+                <VBox alignment="CENTER" spacing="10.0">
+                    <Label text="Пассажироперевозки" style="-fx-font-size: 32px; -fx-text-fill: #ccc; -fx-font-weight: bold;"/>
+                    <Label text="Выберите действие в меню слева" style="-fx-font-size: 16px; -fx-text-fill: #aaa;"/>
+                </VBox>
+            </Tab>
         </TabPane>
     </center>
 </BorderPane>

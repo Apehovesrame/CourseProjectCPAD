@@ -36,6 +36,44 @@ public class BusDaoImpl { // Если у вас есть интерфейс BusD
         return buses;
     }
 
+    public void save(Bus bus) {
+        String sql = "INSERT INTO buses (model, license_plate, seat_capacity) VALUES (?, ?, ?)";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, bus.getModel());
+            pstmt.setString(2, bus.getLicensePlate());
+            pstmt.setInt(3, bus.getSeatCapacity());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при сохранении автобуса", e);
+        }
+    }
+
+    public void update(Bus bus) {
+        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ? WHERE bus_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, bus.getModel());
+            pstmt.setString(2, bus.getLicensePlate());
+            pstmt.setInt(3, bus.getSeatCapacity());
+            pstmt.setLong(4, bus.getBusId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при обновлении автобуса", e);
+        }
+    }
+
+    public void delete(Long id) {
+        String sql = "DELETE FROM buses WHERE bus_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при удалении автобуса", e);
+        }
+    }
+
     public Optional<Bus> findById(Long id) {
         String sql = "SELECT * FROM buses WHERE bus_id = ?";
         try (Connection conn = DBHelper.getConnection();

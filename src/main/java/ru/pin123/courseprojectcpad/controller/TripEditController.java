@@ -70,9 +70,8 @@ public class TripEditController implements Initializable {
             newTrip.setBus(selectedBus);
             newTrip.setCreatedByUser(currentUser); // Передаем реального авторизованного юзера
 
-            // Заглушка для демонстрации дат (в продакшене заменяется на данные из DatePicker)
-            newTrip.setDepartureDatetime(java.time.LocalDateTime.now().toString());
-            newTrip.setArrivalDatetime(java.time.LocalDateTime.now().plusHours(5).toString());
+            newTrip.setDepartureDatetime(java.time.LocalDateTime.now());
+            newTrip.setArrivalDatetime(java.time.LocalDateTime.now().plusHours(5));
 
             tripService.createTrip(newTrip, selectedDrivers);
 

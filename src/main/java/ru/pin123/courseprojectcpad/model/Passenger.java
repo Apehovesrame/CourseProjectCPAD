@@ -8,6 +8,17 @@ public class Passenger {
     private String passportNumber;
     private int birthYear;
 
+    public Passenger(Long passengerId, String lastName, String firstName, String middleName, String passportNumber) {
+        this.passengerId = passengerId;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.passportNumber = passportNumber;
+    }
+
+    public Passenger() {
+    }
+
     public Long getPassengerId() {
         return passengerId;
     }

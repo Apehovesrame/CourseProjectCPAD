@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox alignment="CENTER" spacing="15.0" prefWidth="350.0" prefHeight="250.0"
+      style="-fx-padding: 30; -fx-background-color: #f4f4f4;"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ru.pin123.courseprojectcpad.controller.LoginController">
+
+    <Label text="Авторизация" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #333;"/>
+    <Label text="Система учета пассажироперевозок" style="-fx-font-size: 12px; -fx-text-fill: #777; -fx-padding: 0 0 10 0;"/>
+
+    <TextField fx:id="txtLogin" promptText="Логин (например, admin)" prefHeight="35.0" />
+    <PasswordField fx:id="txtPassword" promptText="Пароль" prefHeight="35.0" />
+
+    <Button text="Войти в систему" onAction="#onLoginClick" prefWidth="200.0" prefHeight="40.0"
+            style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand;" />
+
+</VBox>

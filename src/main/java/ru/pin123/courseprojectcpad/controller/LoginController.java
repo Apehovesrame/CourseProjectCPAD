@@ -2,11 +2,17 @@ package ru.pin123.courseprojectcpad.controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Session;
 import ru.pin123.courseprojectcpad.service.AuthService;
+
+import java.io.IOException;
 
 public class LoginController {
 
@@ -27,26 +33,25 @@ public class LoginController {
             String userName = Session.getCurrentUser().getFirstName();
             showAlert(Alert.AlertType.INFORMATION, "Успех", "Добро пожаловать, " + userName + "!");
 
-            // --- МЕХАНИЗМ ПЕРЕКЛЮЧЕНИЯ ОКНА (JavaFX) ---
+            // --- МЕХАНИЗМ ПЕРЕКЛЮЧЕНИЯ ОКНА ---
 
-            // 1. Загружаем файл главного окна из ресурсов
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                    getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml")
-            );
-            javafx.scene.Parent mainRoot = loader.load();
+            // 1. Загружаем файл главного окна
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml"));
+            Parent mainRoot = loader.load();
 
             // 2. Создаем новую сцену
-            javafx.scene.Stage stage = new javafx.scene.Stage();
+            Stage stage = new Stage();
             stage.setTitle("Система учета пассажироперевозок");
-            stage.setScene(new javafx.scene.Scene(mainRoot));
+            stage.setScene(new Scene(mainRoot));
             stage.show();
 
             // 3. Закрываем текущее окно авторизации
             txtLogin.getScene().getWindow().hide();
 
-        } catch (IllegalArgumentException | RuntimeException e) {
+        } catch (RuntimeException e) {
+            // RuntimeException перехватывает и IllegalArgumentException, и другие ошибки времени выполнения
             showAlert(Alert.AlertType.ERROR, "Ошибка входа", e.getMessage());
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             showAlert(Alert.AlertType.ERROR, "Ошибка интерфейса", "Не удалось загрузить главное окно: " + e.getMessage());
         }
     }

@@ -3,6 +3,7 @@ package ru.pin123.courseprojectcpad.dao;
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Driver;
 import ru.pin123.courseprojectcpad.model.Trip;
+import ru.pin123.courseprojectcpad.model.Route;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -71,6 +72,8 @@ public class TripDaoImpl implements TripDao {
         }
     }
 
+
+
     @Override
     public Optional<Trip> findById(Long id) {
         // Заглушка для будущего использования
@@ -79,7 +82,36 @@ public class TripDaoImpl implements TripDao {
 
     @Override
     public List<Trip> findAll() {
-        // Заглушка для будущего использования (для вывода списка рейсов в таблицу)
-        return new ArrayList<>();
+        List<Trip> trips = new ArrayList<>();
+        String sql = "SELECT t.*, r.route_number, r.departure_point, r.destination_point " +
+                "FROM trips t " +
+                "JOIN routes r ON t.route_id = r.route_id " +
+                "WHERE t.is_deleted = false";
+
+        try (Connection conn = DBHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Trip trip = new Trip();
+                trip.setTripId(rs.getLong("trip_id"));
+
+                Route route = new Route();
+                route.setRouteId(rs.getLong("route_id"));
+                route.setRouteNumber(rs.getString("route_number"));
+                route.setDeparturePoint(rs.getString("departure_point"));
+                route.setDestinationPoint(rs.getString("destination_point"));
+
+                trip.setRoute(route);
+
+                // ИСПРАВЛЕНИЕ: убираем .toString(), передаем LocalDateTime напрямую
+                trip.setDepartureDatetime(rs.getTimestamp("departure_datetime").toLocalDateTime());
+
+                trips.add(trip);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при загрузке списка рейсов", e);
+        }
+        return trips;
     }
 }

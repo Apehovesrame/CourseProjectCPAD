@@ -4,6 +4,13 @@ public class Stop {
     private Long stopId;
     private String name;
 
+    public Stop(Long stopId, String name) {
+        this.stopId = stopId;
+        this.name = name;
+    }
+
+    public Stop() {
+    }
 
     public Long getStopId() {
         return stopId;
