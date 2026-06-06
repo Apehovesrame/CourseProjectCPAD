@@ -10,30 +10,33 @@ import java.util.Optional;
 
 public class TicketDaoImpl implements TicketDao {
 
-
     @Override
     public void create(Ticket ticket) {
-        String sql = "INSERT INTO Tickets (trip_id, passenger_id, destination_stop_id, sold_by_user_id, seat_number, cost) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "{? = CALL sell_ticket_func(?, ?, ?, ?, ?, ?)}";
 
         try (Connection conn = DBHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            pstmt.setLong(1, ticket.getTrip().getTripId());
-            pstmt.setLong(2, ticket.getPassenger().getPassengerId());
-            pstmt.setLong(3, ticket.getDestinationStop().getStopId());
-            pstmt.setLong(4, ticket.getSoldByUser().getUserId());
-            pstmt.setInt(5, ticket.getSeatNumber());
-            pstmt.setBigDecimal(6, ticket.getCost());
+             CallableStatement cstmt = conn.prepareCall(sql)) {
 
-            pstmt.executeUpdate();
+            // 1. Регистрируем первый параметр как выходной (это то, что вернет БД)
+            cstmt.registerOutParameter(1, Types.BIGINT);
 
-            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    ticket.setTicketId(generatedKeys.getLong(1));
-                }
-            }
+            // 2. Устанавливаем входные параметры (со 2 по 7 позицию)
+            cstmt.setLong(2, ticket.getTrip().getTripId());
+            cstmt.setLong(3, ticket.getPassenger().getPassengerId());
+            cstmt.setLong(4, ticket.getDestinationStop().getStopId());
+            cstmt.setLong(5, ticket.getSoldByUser().getUserId());
+            cstmt.setInt(6, ticket.getSeatNumber());
+            cstmt.setBigDecimal(7, ticket.getCost());
+
+            // 3. Выполняем функцию (и триггеры логирования/проверки мест сработают автоматически!)
+            cstmt.execute();
+
+            // 4. Достаем сгенерированный ticket_id из первого параметра и кладем в объект
+            long generatedId = cstmt.getLong(1);
+            ticket.setTicketId(generatedId);
+
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при сохранении билета", e);
+            throw new RuntimeException("Ошибка при вызове функции продажи билета: " + e.getMessage(), e);
         }
     }
 
@@ -72,7 +75,21 @@ public class TicketDaoImpl implements TicketDao {
 
     @Override
     public List<Ticket> findTicketsByTripId(Long tripId) {
-        return new ArrayList<>();
+        List<Ticket> tickets = new ArrayList<>();
+        // Этот метод нужен контроллеру, чтобы понять, какие места в автобусе заблокировать (уже проданы)
+        String sql = "SELECT * FROM Tickets WHERE trip_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, tripId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(mapResultSetToTicket(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при получении билетов для рейса " + tripId, e);
+        }
+        return tickets;
     }
 
     private Ticket mapResultSetToTicket(ResultSet rs) throws SQLException {
@@ -80,7 +97,16 @@ public class TicketDaoImpl implements TicketDao {
         ticket.setTicketId(rs.getLong("ticket_id"));
         ticket.setSeatNumber(rs.getInt("seat_number"));
         ticket.setCost(rs.getBigDecimal("cost"));
-        ticket.setSaleDate(rs.getTimestamp("sale_date").toLocalDateTime());
+
+        // ResultSet.getTimestamp может вернуть null, поэтому лучше сделать проверку,
+        // но если sale_date имеет DEFAULT CURRENT_TIMESTAMP, то всё окей.
+        Timestamp saleDate = rs.getTimestamp("sale_date");
+        if (saleDate != null) {
+            ticket.setSaleDate(saleDate.toLocalDateTime());
+        }
+
+        // Внимание: В будущем сюда нужно будет добавить маппинг вложенных объектов
+        // (Trip, Passenger, Stop, User), если они понадобятся при выводе на экран.
 
         return ticket;
     }
