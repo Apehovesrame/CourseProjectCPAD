@@ -11,13 +11,32 @@ import ru.pin123.courseprojectcpad.service.TripService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TripEditController {
+public class TripEditController implements Initializable {
 
     @FXML private ComboBox<Route> comboRoutes;
+    @FXML private ComboBox<Bus> comboBuses;
     // В JavaFX для выбора нескольких элементов часто используют ListView с MultipleSelectionModel
     @FXML private ListView<Driver> listDrivers;
 
     private final TripService tripService = new TripService();
+
+    private final RouteDaoImpl routeDao = new RouteDaoImpl();
+    private final BusDaoImpl busDao = new BusDaoImpl();
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        // Загружаем данные из БД
+        List<Route> routesFromDB = routeDao.findAll();
+        List<Bus> busesFromDB = busDao.findAll();
+
+        // Превращаем обычный List в специальный список JavaFX (ObservableList)
+        ObservableList<Route> fxRoutes = FXCollections.observableArrayList(routesFromDB);
+        ObservableList<Bus> fxBuses = FXCollections.observableArrayList(busesFromDB);
+
+        // Устанавливаем данные в ComboBox!
+        comboRoutes.setItems(fxRoutes);
+        comboBuses.setItems(fxBuses);
+    }
 
     @FXML
     public void onSaveTripClick(ActionEvent event) {

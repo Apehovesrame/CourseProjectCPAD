@@ -40,4 +40,10 @@ public class Bus {
     public void setSeatCapacity(int seatCapacity) {
         this.seatCapacity = seatCapacity;
     }
+
+    @Override
+    public String toString() {
+        // Так автобус будет красиво отображаться в ComboBox
+        return model + " (" + licensePlate + ") - " + seatCapacity + " мест";
+    }
 }

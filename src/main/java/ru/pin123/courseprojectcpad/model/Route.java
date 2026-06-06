@@ -47,4 +47,10 @@ public class Route {
     public void setDurationMinutes(int durationMinutes) {
         this.durationMinutes = durationMinutes;
     }
+
+    @Override
+    public String toString() {
+        // Отображение: "№101: Муром - Владимир"
+        return "№" + routeNumber + ": " + departurePoint + " - " + destinationPoint;
+    }
 }
