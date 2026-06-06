@@ -110,6 +110,11 @@ public class MainController {
         loadView("/ru/pin123/courseprojectcpad/view/ticket-sell-view.fxml");
     }
 
+    @FXML
+    void onReportsClick(ActionEvent event) {
+        loadView("/ru/pin123/courseprojectcpad/view/reports-view.fxml");
+    }
+
     // --- БЛОК ВЫХОДА ---
 
     @FXML

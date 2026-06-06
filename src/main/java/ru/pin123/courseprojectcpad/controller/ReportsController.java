@@ -1,13 +1,14 @@
 package ru.pin123.courseprojectcpad.controller;
 
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import ru.pin123.courseprojectcpad.model.ReportRow;
-import ru.pin123.courseprojectcpad.service.ReportService;
+import ru.pin123.courseprojectcpad.dao.ReportDaoImpl;
+import ru.pin123.courseprojectcpad.model.RouteReportItem;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -17,60 +18,63 @@ import java.util.ResourceBundle;
 
 public class ReportsController implements Initializable {
 
-    @FXML private DatePicker dpStartDate;
-    @FXML private DatePicker dpEndDate;
+    @FXML private DatePicker dpStart;
+    @FXML private DatePicker dpEnd;
 
-    // Элементы таблицы
-    @FXML private TableView<ReportRow> tableReport;
-    @FXML private TableColumn<ReportRow, String> colRoute;
-    @FXML private TableColumn<ReportRow, Integer> colTickets;
-    @FXML private TableColumn<ReportRow, BigDecimal> colRevenue;
+    @FXML private TableView<RouteReportItem> reportTable;
+    @FXML private TableColumn<RouteReportItem, String> colDestination;
+    @FXML private TableColumn<RouteReportItem, Integer> colTickets;
+    @FXML private TableColumn<RouteReportItem, BigDecimal> colRevenue;
 
-    // Итоговая сумма
-    @FXML private Label lblTotalSum;
+    @FXML private PieChart pieChart;
+    @FXML private Label lblTotalRevenue;
 
-    private final ReportService reportService = new ReportService();
+    private final ReportDaoImpl reportDao = new ReportDaoImpl();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Связываем колонки таблицы с полями класса ReportRow
-        // Строки "routeName", "ticketsSold", "totalRevenue" должны ТОЧНО совпадать с названиями переменных в ReportRow!
-        colRoute.setCellValueFactory(new PropertyValueFactory<>("routeName"));
-        colTickets.setCellValueFactory(new PropertyValueFactory<>("ticketsSold"));
-        colRevenue.setCellValueFactory(new PropertyValueFactory<>("totalRevenue"));
+        colDestination.setCellValueFactory(new PropertyValueFactory<>("destination"));
+        colTickets.setCellValueFactory(new PropertyValueFactory<>("ticketsCount"));
+        colRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
 
-        // Устанавливаем даты по умолчанию (например, текущий месяц)
-        dpStartDate.setValue(LocalDate.now().withDayOfMonth(1));
-        dpEndDate.setValue(LocalDate.now());
+        // Устанавливаем значения по умолчанию: отчет за последний месяц
+        dpEnd.setValue(LocalDate.now());
+        dpStart.setValue(LocalDate.now().minusMonths(1));
+
+        // Сразу формируем отчет при открытии вкладки
+        handleGenerateReport();
     }
 
     @FXML
-    public void onGenerateReportClick(ActionEvent event) {
+    private void handleGenerateReport() {
+        LocalDate start = dpStart.getValue();
+        LocalDate end = dpEnd.getValue();
+
+        if (start == null || end == null) {
+            new Alert(Alert.AlertType.WARNING, "Пожалуйста, выберите период!").showAndWait();
+            return;
+        }
+
         try {
-            LocalDate start = dpStartDate.getValue();
-            LocalDate end = dpEndDate.getValue();
+            List<RouteReportItem> reportData = reportDao.getSalesReport(start, end);
 
-            // Получаем данные из базы
-            List<ReportRow> data = reportService.generateRevenueReport(start, end);
+            // 1. Обновляем таблицу
+            reportTable.setItems(FXCollections.observableArrayList(reportData));
 
-            // Загружаем данные в таблицу
-            tableReport.setItems(FXCollections.observableArrayList(data));
+            // 2. Обновляем график и считаем итоговую сумму
+            ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+            BigDecimal totalRevenue = BigDecimal.ZERO;
 
-            // Считаем общую итоговую сумму по всем маршрутам
-            BigDecimal totalSum = data.stream()
-                    .map(ReportRow::getTotalRevenue)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            for (RouteReportItem item : reportData) {
+                pieData.add(new PieChart.Data(item.getDestination(), item.getTicketsCount()));
+                totalRevenue = totalRevenue.add(item.getRevenue());
+            }
 
-            lblTotalSum.setText("Итого выручка: " + totalSum + " руб.");
+            pieChart.setData(pieData);
+            lblTotalRevenue.setText(String.format("%.2f руб.", totalRevenue));
 
-        } catch (RuntimeException e) {
-            // Этого достаточно: RuntimeException перехватит и IllegalArgumentException,
-            // и любые другие ошибки, возникшие в сервисе или DAO
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Ошибка формирования отчета");
-            alert.setHeaderText(null);
-            alert.setContentText(e.getMessage());
-            alert.showAndWait();
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR, "Ошибка загрузки отчета: " + e.getMessage()).showAndWait();
         }
     }
 }
