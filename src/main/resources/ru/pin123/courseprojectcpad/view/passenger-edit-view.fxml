@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane prefHeight="220.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.PassengerEditController">
+    <children>
+        <GridPane layoutX="20.0" layoutY="20.0" prefHeight="130.0" prefWidth="310.0" vgap="10" hgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.0" minWidth="10.0" prefWidth="80.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="200.0" />
+            </columnConstraints>
+            <children>
+                <Label text="Фамилия:" GridPane.rowIndex="0" />
+                <TextField fx:id="tfLastName" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Иванов" />
+
+                <Label text="Имя:" GridPane.rowIndex="1" />
+                <TextField fx:id="tfFirstName" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="Иван" />
+
+                <Label text="Отчество:" GridPane.rowIndex="2" />
+                <TextField fx:id="tfMiddleName" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Иванович (необязательно)" />
+
+                <Label text="Паспорт:" GridPane.rowIndex="3" />
+                <TextField fx:id="tfPassport" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Серия и номер" />
+            </children>
+        </GridPane>
+
+        <HBox layoutX="170.0" layoutY="170.0" spacing="10.0">
+            <children>
+                <Button onAction="#handleOk" text="Сохранить" prefWidth="80" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" />
+                <Button onAction="#handleCancel" text="Отмена" prefWidth="70" />
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

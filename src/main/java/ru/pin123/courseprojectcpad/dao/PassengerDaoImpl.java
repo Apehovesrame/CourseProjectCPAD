@@ -9,66 +9,112 @@ import java.util.List;
 
 public class PassengerDaoImpl {
 
-    public Passenger getOrCreate(String lastName, String firstName, String middleName, String passportNumber) {
-        String findSql = "SELECT * FROM passengers WHERE passport_number = ?";
-        String insertSql = "INSERT INTO passengers (last_name, first_name, middle_name, passport_number, birth_year) VALUES (?, ?, ?, ?, 1990) RETURNING passenger_id";
-
-        try (Connection conn = DBHelper.getConnection()) {
-            // 1. Пытаемся найти пассажира
-            try (PreparedStatement findStmt = conn.prepareStatement(findSql)) {
-                findStmt.setString(1, passportNumber);
-                ResultSet rs = findStmt.executeQuery();
-                if (rs.next()) {
-                    return new Passenger(
-                            rs.getLong("passenger_id"),
-                            rs.getString("last_name"),
-                            rs.getString("first_name"),
-                            rs.getString("middle_name"),
-                            rs.getString("passport_number")
-                    );
-                }
-            }
-
-            // 2. Если не нашли, создаем нового
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
-                insertStmt.setString(1, lastName);
-                insertStmt.setString(2, firstName);
-                insertStmt.setString(3, middleName);
-                insertStmt.setString(4, passportNumber);
-
-                ResultSet rs = insertStmt.executeQuery();
-                if (rs.next()) {
-                    return new Passenger(rs.getLong(1), lastName, firstName, middleName, passportNumber);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при работе с БД пассажиров: " + e.getMessage(), e);
-        }
-        return null;
-    }
-    // Добавьте этот метод в класс PassengerDaoImpl
     public List<Passenger> findAll() {
         List<Passenger> passengers = new ArrayList<>();
-        String sql = "SELECT * FROM passengers";
-
+        String sql = "SELECT * FROM passengers ORDER BY last_name, first_name";
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 Passenger p = new Passenger();
-                // Убедитесь, что сеттеры соответствуют вашей модели
                 p.setPassengerId(rs.getLong("passenger_id"));
                 p.setLastName(rs.getString("last_name"));
                 p.setFirstName(rs.getString("first_name"));
                 p.setMiddleName(rs.getString("middle_name"));
-                p.setPassportNumber(rs.getString("passport_number"));
-
+                p.setPassport(rs.getString("passport"));
                 passengers.add(p);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при загрузке списка пассажиров", e);
         }
         return passengers;
+    }
+
+    public void save(Passenger passenger) {
+        String sql = "INSERT INTO passengers (last_name, first_name, middle_name, passport) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, passenger.getLastName());
+            pstmt.setString(2, passenger.getFirstName());
+            pstmt.setString(3, passenger.getMiddleName());
+            pstmt.setString(4, passenger.getPassport());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при сохранении пассажира", e);
+        }
+    }
+
+    public void update(Passenger passenger) {
+        String sql = "UPDATE passengers SET last_name = ?, first_name = ?, middle_name = ?, passport = ? WHERE passenger_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, passenger.getLastName());
+            pstmt.setString(2, passenger.getFirstName());
+            pstmt.setString(3, passenger.getMiddleName());
+            pstmt.setString(4, passenger.getPassport());
+            pstmt.setLong(5, passenger.getPassengerId());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при обновлении пассажира", e);
+        }
+    }
+
+    public void delete(Long id) {
+        String sql = "DELETE FROM passengers WHERE passenger_id = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при удалении пассажира (возможно, на него уже оформлен билет)", e);
+        }
+    }
+
+    // Этот метод нужен для продажи билетов (ищет по паспорту или создает нового)
+    public Passenger getOrCreate(String lastName, String firstName, String middleName, String passport) {
+        String findSql = "SELECT * FROM passengers WHERE passport = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement findStmt = conn.prepareStatement(findSql)) {
+
+            findStmt.setString(1, passport);
+            try (ResultSet rs = findStmt.executeQuery()) {
+                if (rs.next()) {
+                    Passenger p = new Passenger();
+                    p.setPassengerId(rs.getLong("passenger_id"));
+                    p.setLastName(rs.getString("last_name"));
+                    p.setFirstName(rs.getString("first_name"));
+                    p.setMiddleName(rs.getString("middle_name"));
+                    p.setPassport(rs.getString("passport"));
+                    return p;
+                }
+            }
+
+            // Если не нашли — создаем
+            Passenger newPassenger = new Passenger();
+            newPassenger.setLastName(lastName);
+            newPassenger.setFirstName(firstName);
+            newPassenger.setMiddleName(middleName);
+            newPassenger.setPassport(passport);
+
+            String insertSql = "INSERT INTO passengers (last_name, first_name, middle_name, passport) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+                insertStmt.setString(1, lastName);
+                insertStmt.setString(2, firstName);
+                insertStmt.setString(3, middleName);
+                insertStmt.setString(4, passport);
+                insertStmt.executeUpdate();
+
+                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        newPassenger.setPassengerId(generatedKeys.getLong(1));
+                    }
+                }
+            }
+            return newPassenger;
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при поиске/создании пассажира", e);
+        }
     }
 }

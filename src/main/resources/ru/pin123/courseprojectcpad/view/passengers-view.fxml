@@ -5,10 +5,16 @@
     <VBox spacing="10" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
         <TableView fx:id="passengerTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
-                <TableColumn fx:id="colFio" text="ФИО" prefWidth="250"/>
+                <TableColumn fx:id="colLastName" text="Фамилия" prefWidth="150"/>
+                <TableColumn fx:id="colFirstName" text="Имя" prefWidth="150"/>
+                <TableColumn fx:id="colMiddleName" text="Отчество" prefWidth="150"/>
                 <TableColumn fx:id="colPassport" text="Паспорт" prefWidth="150"/>
             </columns>
         </TableView>
+        <HBox spacing="10">
+            <Button text="Добавить пассажира" onAction="#handleAdd" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="Редактировать" onAction="#handleEdit" style="-fx-cursor: hand;"/>
+            <Button text="Удалить" onAction="#handleDelete" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
+        </HBox>
     </VBox>
 </AnchorPane>
