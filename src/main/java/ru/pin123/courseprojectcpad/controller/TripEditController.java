@@ -23,6 +23,10 @@ public class TripEditController implements Initializable {
     private final RouteDaoImpl routeDao = new RouteDaoImpl();
     private final BusDaoImpl busDao = new BusDaoImpl();
 
+    // Загружаем в ListView список водителей для назначения на рейс
+    List<Driver> drivers = new DriverDaoImpl().findAll();
+    listDrivers.setItems(FXCollections.observableArrayList(drivers));
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Загружаем данные из БД

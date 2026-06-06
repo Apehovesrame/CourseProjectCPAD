@@ -20,4 +20,10 @@ public class Stop {
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
+    public String toString() {
+        // В интерфейсе остановка будет просто писаться своим названием (например, "Муром")
+        return name;
+    }
 }

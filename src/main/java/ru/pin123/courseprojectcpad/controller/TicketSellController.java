@@ -23,6 +23,9 @@ public class TicketSellController {
     // Временная заглушка: текущий авторизованный кассир (потом будем брать из Login-окна)
     private User currentUser = new User(1L, "Кассир", "Тестовый");
 
+    // Загружаем в ComboBox список остановок, до куда едет пассажир
+    List<Stop> stops = new StopDaoImpl().findAll();
+    comboStops.setItems(FXCollections.observableArrayList(stops));
     /**
      * Этот метод срабатывает при нажатии на кнопку "Оформить билет"
      */
