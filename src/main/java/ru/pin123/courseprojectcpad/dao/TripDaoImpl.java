@@ -4,6 +4,7 @@ import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Driver;
 import ru.pin123.courseprojectcpad.model.Trip;
 import ru.pin123.courseprojectcpad.model.Route;
+import ru.pin123.courseprojectcpad.model.Bus;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -83,10 +84,15 @@ public class TripDaoImpl implements TripDao {
     @Override
     public List<Trip> findAll() {
         List<Trip> trips = new ArrayList<>();
-        String sql = "SELECT t.*, r.route_number, r.departure_point, r.destination_point " +
+        // ДОБАВЛЕН JOIN С ТАБЛИЦЕЙ АВТОБУСОВ
+        String sql = "SELECT t.*, " +
+                "r.route_number, r.departure_point, r.destination_point, " +
+                "b.model, b.license_plate, b.seat_capacity " +
                 "FROM trips t " +
                 "JOIN routes r ON t.route_id = r.route_id " +
-                "WHERE t.is_deleted = false";
+                "JOIN buses b ON t.bus_id = b.bus_id " +
+                "WHERE t.is_deleted = false " +
+                "ORDER BY t.departure_datetime DESC";
 
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
@@ -96,16 +102,25 @@ public class TripDaoImpl implements TripDao {
                 Trip trip = new Trip();
                 trip.setTripId(rs.getLong("trip_id"));
 
+                // 1. Собираем Маршрут
                 Route route = new Route();
                 route.setRouteId(rs.getLong("route_id"));
                 route.setRouteNumber(rs.getString("route_number"));
                 route.setDeparturePoint(rs.getString("departure_point"));
                 route.setDestinationPoint(rs.getString("destination_point"));
-
                 trip.setRoute(route);
 
-                // ИСПРАВЛЕНИЕ: убираем .toString(), передаем LocalDateTime напрямую
+                // 2. Собираем Автобус (Критично для отрисовки мест!)
+                Bus bus = new Bus();
+                bus.setBusId(rs.getLong("bus_id"));
+                bus.setModel(rs.getString("model"));
+                bus.setLicensePlate(rs.getString("license_plate"));
+                bus.setSeatCapacity(rs.getInt("seat_capacity"));
+                trip.setBus(bus);
+
+                // 3. Даты
                 trip.setDepartureDatetime(rs.getTimestamp("departure_datetime").toLocalDateTime());
+                trip.setArrivalDatetime(rs.getTimestamp("arrival_datetime").toLocalDateTime());
 
                 trips.add(trip);
             }

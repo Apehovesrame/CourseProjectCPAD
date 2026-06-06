@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane prefHeight="250.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.RouteEditController">
+    <children>
+        <GridPane layoutX="20.0" layoutY="20.0" prefHeight="150.0" prefWidth="360.0" vgap="10" hgap="10">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="150.0" minWidth="10.0" prefWidth="120.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="240.0" minWidth="10.0" prefWidth="240.0" />
+            </columnConstraints>
+            <children>
+                <Label text="Номер маршрута:" GridPane.rowIndex="0" />
+                <TextField fx:id="tfNumber" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label text="Откуда:" GridPane.rowIndex="1" />
+                <TextField fx:id="tfFrom" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                <Label text="Куда:" GridPane.rowIndex="2" />
+                <TextField fx:id="tfTo" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+                <Label text="Время в пути (мин):" GridPane.rowIndex="3" />
+                <TextField fx:id="tfDuration" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            </children>
+        </GridPane>
+        <HBox layoutX="220.0" layoutY="200.0" spacing="10.0">
+            <children>
+                <Button onAction="#handleOk" text="Сохранить" prefWidth="80" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" />
+                <Button onAction="#handleCancel" text="Отмена" prefWidth="70" />
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

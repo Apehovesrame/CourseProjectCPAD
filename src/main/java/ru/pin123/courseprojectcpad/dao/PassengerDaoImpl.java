@@ -4,6 +4,8 @@ import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Passenger;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PassengerDaoImpl {
 
@@ -43,5 +45,30 @@ public class PassengerDaoImpl {
             throw new RuntimeException("Ошибка при работе с БД пассажиров: " + e.getMessage(), e);
         }
         return null;
+    }
+    // Добавьте этот метод в класс PassengerDaoImpl
+    public List<Passenger> findAll() {
+        List<Passenger> passengers = new ArrayList<>();
+        String sql = "SELECT * FROM passengers";
+
+        try (Connection conn = DBHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Passenger p = new Passenger();
+                // Убедитесь, что сеттеры соответствуют вашей модели
+                p.setPassengerId(rs.getLong("passenger_id"));
+                p.setLastName(rs.getString("last_name"));
+                p.setFirstName(rs.getString("first_name"));
+                p.setMiddleName(rs.getString("middle_name"));
+                p.setPassportNumber(rs.getString("passport_number"));
+
+                passengers.add(p);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка при загрузке списка пассажиров", e);
+        }
+        return passengers;
     }
 }

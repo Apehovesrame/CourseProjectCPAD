@@ -1,6 +1,5 @@
 package ru.pin123.courseprojectcpad.controller;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,7 +9,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TabPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Session;
 import ru.pin123.courseprojectcpad.model.User;
@@ -22,17 +21,15 @@ import java.util.ResourceBundle;
 public class MainController {
 
     @FXML private ComboBox<String> langSelector;
-    @FXML private TabPane mainTabPane;
-
-    // Элементы из нашей логики сессий
     @FXML private Label lblGreeting;
+
+    // Ссылка на центральную область экрана, куда будут грузиться меню
+    @FXML private StackPane contentArea;
 
     @FXML
     public void initialize() {
-        // 1. Инициализация языков (ваш код)
         if (langSelector != null) {
             langSelector.setItems(FXCollections.observableArrayList("Русский", "English", "Deutsch"));
-
             String currentLang = Locale.getDefault().getLanguage();
             if (currentLang.equals("en")) {
                 langSelector.setValue("English");
@@ -43,7 +40,6 @@ public class MainController {
             }
         }
 
-        // 2. Инициализация сессии и приветствия (наш новый код)
         User currentUser = Session.getCurrentUser();
         if (currentUser != null && lblGreeting != null) {
             lblGreeting.setText("Добро пожаловать, " + currentUser.getFirstName() + " " + currentUser.getLastName() + "!");
@@ -65,24 +61,16 @@ public class MainController {
 
     private void reloadUI() {
         try {
-            int activeTab = mainTabPane != null && mainTabPane.getSelectionModel() != null ? mainTabPane.getSelectionModel().getSelectedIndex() : 0;
-
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
-            // ИСПОЛЬЗУЕМ НОВЫЙ ПУТЬ К ФАЙЛУ ВЕРСТКИ
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml"), bundle);
             Parent root = loader.load();
-
-            MainController newController = loader.getController();
-            if (newController.mainTabPane != null) {
-                newController.mainTabPane.getSelectionModel().select(activeTab);
-            }
 
             if (langSelector != null && langSelector.getScene() != null) {
                 Scene scene = langSelector.getScene();
                 scene.setRoot(root);
                 Stage stage = (Stage) scene.getWindow();
                 if (stage != null) {
-                    stage.setTitle(bundle.getString("app.title")); // Берет название из main_ru.properties
+                    stage.setTitle(bundle.getString("app.title"));
                 }
             }
         } catch (IOException e) {
@@ -90,72 +78,68 @@ public class MainController {
         }
     }
 
-    // --- БЛОК НАВИГАЦИИ (пути обновлены под новую структуру) ---
+    // --- БЛОК НАВИГАЦИИ ---
 
     @FXML
     void onBusesClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/buses-view.fxml", "Справочник автобусов");
+        loadView("/ru/pin123/courseprojectcpad/view/buses-view.fxml");
     }
 
     @FXML
     void onDriversClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/drivers-view.fxml", "Справочник водителей");
+        loadView("/ru/pin123/courseprojectcpad/view/drivers-view.fxml");
     }
 
     @FXML
     void onPassengersClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/passengers-view.fxml", "База пассажиров");
+        loadView("/ru/pin123/courseprojectcpad/view/passengers-view.fxml");
     }
 
     @FXML
     void onRoutesClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/routes-view.fxml", "Маршруты");
+        loadView("/ru/pin123/courseprojectcpad/view/routes-view.fxml");
     }
 
     @FXML
     void onTripsClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/trips-view.fxml", "Расписание рейсов");
+        loadView("/ru/pin123/courseprojectcpad/view/trips-view.fxml");
     }
 
     @FXML
     void onTicketSellClick(ActionEvent event) {
-        loadView(event, "/ru/pin123/courseprojectcpad/view/ticket-sell-view.fxml", "Продажа билета");
+        loadView("/ru/pin123/courseprojectcpad/view/ticket-sell-view.fxml");
     }
 
     // --- БЛОК ВЫХОДА ---
 
     @FXML
     void onLogoutClick(ActionEvent event) {
-        // Очищаем сессию и возвращаемся на окно логина
         Session.clear();
-        loadView(event, "/ru/pin123/courseprojectcpad/view/login-view.fxml", "Авторизация");
-    }
-
-    @FXML
-    void onExitClick(ActionEvent event) {
-        Platform.exit(); // Полное закрытие программы
-    }
-
-    // --- УНИВЕРСАЛЬНЫЙ МЕТОД ЗАГРУЗКИ ОКОН ---
-
-    private void loadView(ActionEvent event, String fxmlPath, String defaultTitle) {
         try {
-            // ВАЖНО: Добавил загрузку ResourceBundle, чтобы окна открывались на выбранном языке!
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath), bundle);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/login-view.fxml"), bundle);
             Parent root = loader.load();
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            // Пытаемся взять переведенный заголовок окна, если его нет - ставим дефолтный
-            String title = defaultTitle;
-            try {
-                title = bundle.getString("app.title");
-            } catch (Exception ignored) {}
-
-            stage.setTitle(title);
+            stage.setTitle("Авторизация");
             stage.setScene(new Scene(root));
-            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // --- УНИВЕРСАЛЬНЫЙ МЕТОД ЗАГРУЗКИ ОКОН (SPA-ПОДХОД) ---
+
+    private void loadView(String fxmlPath) {
+        try {
+            ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath), bundle);
+            Node view = loader.load();
+
+            // Очищаем центральную область и вставляем новый элемент
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(view);
+
         } catch (IOException e) {
             System.err.println("Ошибка при загрузке FXML файла: " + fxmlPath);
             e.printStackTrace();

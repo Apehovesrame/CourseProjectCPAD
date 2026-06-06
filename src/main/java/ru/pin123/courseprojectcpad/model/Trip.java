@@ -61,4 +61,14 @@ public class Trip {
     public void setArrivalDatetime(LocalDateTime arrivalDatetime) {
         this.arrivalDatetime = arrivalDatetime;
     }
+
+    @Override
+    public String toString() {
+        if (route == null || departureDatetime == null) return "Рейс (данные неполные)";
+
+        // Формируем красивую строку: "№101 (2026-06-06 14:30)"
+        return "№" + route.getRouteNumber() + " (" +
+                departureDatetime.toLocalDate() + " " +
+                departureDatetime.toLocalTime() + ")";
+    }
 }

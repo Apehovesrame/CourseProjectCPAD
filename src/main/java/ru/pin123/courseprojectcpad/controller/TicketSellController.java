@@ -7,21 +7,28 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.pin123.courseprojectcpad.dao.PassengerDaoImpl;
+import ru.pin123.courseprojectcpad.dao.StopDaoImpl;
+import ru.pin123.courseprojectcpad.dao.TripDaoImpl;
 import ru.pin123.courseprojectcpad.model.*;
 import ru.pin123.courseprojectcpad.service.TicketingService;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import ru.pin123.courseprojectcpad.dao.PassengerDaoImpl;
 
 public class TicketSellController implements Initializable {
 
     private static final Logger logger = LoggerFactory.getLogger(TicketSellController.class);
-    private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
 
-    // --- Привязка к вашим fx:id из FXML ---
+    // Подключаем все необходимые DAO
+    private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
+    private final TripDaoImpl tripDao = new TripDaoImpl();
+    private final StopDaoImpl stopDao = new StopDaoImpl();
+    private final TicketingService ticketingService = new TicketingService();
+
     @FXML private ListView<Trip> tripsListView;
     @FXML private ComboBox<StopItem> stopComboBox;
     @FXML private Label costLabel;
@@ -29,111 +36,94 @@ public class TicketSellController implements Initializable {
     @FXML private TextField passportField;
     @FXML private GridPane seatsGrid;
 
-    private final TicketingService ticketingService = new TicketingService();
-    // В будущем здесь понадобится PassengerDao для создания пассажира "на лету"
-    // private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
-
-    // Переменная для хранения выбранного места (какую кнопку нажал кассир)
     private Integer selectedSeatNumber = null;
     private Button selectedSeatButton = null;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // 1. Загружаем все доступные рейсы в ListView
+        // 1. Загружаем все доступные рейсы из базы
         try {
-            //TODO: implement find all trips
-            List<Trip> trips = List.of(); //tripDao.findAll(); // Пока используем findAll, потом можно сделать findActiveTrips
+            List<Trip> trips = tripDao.findAll();
             tripsListView.setItems(FXCollections.observableArrayList(trips));
         } catch (Exception e) {
             logger.error("Failed to load trips", e);
+            showAlert(Alert.AlertType.ERROR, "Ошибка БД", "Не удалось загрузить рейсы");
         }
 
-        // 2. Слушатель: когда кассир кликает на рейс в списке
-        tripsListView.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            if (newValue != null) {
-                onTripSelected(newValue);
-            }
+        // 2. Слушатель: когда кассир кликает на рейс
+        tripsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) onTripSelected(newVal);
         });
 
         // 3. Слушатель: когда кассир выбирает остановку — меняем цену
-        stopComboBox.getSelectionModel().selectedItemProperty().addListener((_, _, newValue) -> {
-            if (newValue != null) {
-                costLabel.setText(newValue.getPrice().toString());
-            }
+        stopComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) costLabel.setText(newVal.getPrice().toString());
         });
     }
 
-    /**
-     * Метод срабатывает при выборе рейса в списке
-     */
     private void onTripSelected(Trip trip) {
-        // 1. Загружаем остановки именно для этого рейса (заглушка, тут нужен метод DAO, который вернет цену до остановки)
-        // Временно создаем список вручную для демонстрации
-        stopComboBox.setItems(FXCollections.observableArrayList(
-                new StopItem(new Stop(1L, "Владимир"), new BigDecimal("500.00")),
-                new StopItem(new Stop(2L, "Москва"), new BigDecimal("1200.00"))
-        ));
+        // Загружаем реальные остановки из БД
+        List<Stop> allStops = stopDao.findAll();
+        List<StopItem> stopItems = new ArrayList<>();
 
-        // 2. Отрисовываем салон автобуса
+        // Для примера генерируем стоимость от 150 руб. с шагом в 100 руб. за каждую следующую остановку
+        BigDecimal basePrice = new BigDecimal("150.00");
+        for (int i = 0; i < allStops.size(); i++) {
+            BigDecimal price = basePrice.add(new BigDecimal(i * 100));
+            stopItems.add(new StopItem(allStops.get(i), price));
+        }
+
+        stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
+
+        // Отрисовываем салон
         drawBusSeats(trip);
     }
 
-    /**
-     * Динамически генерирует кнопки посадочных мест в салоне (GridPane)
-     */
     private void drawBusSeats(Trip trip) {
-        seatsGrid.getChildren().clear(); // Очищаем старые кнопки
+        seatsGrid.getChildren().clear();
         selectedSeatNumber = null;
         selectedSeatButton = null;
 
-        // Если у рейса нет автобуса, прерываем
-        if (trip.getBus() == null) return;
+        if (trip.getBus() == null) {
+            showAlert(Alert.AlertType.ERROR, "Ошибка", "К этому рейсу не привязан автобус!");
+            return;
+        }
 
         int capacity = trip.getBus().getSeatCapacity();
-
-        // Получаем из нашего сервиса список уже проданных мест на этот рейс
         List<Integer> occupiedSeats = ticketingService.getOccupiedSeats(trip.getTripId());
-
-        int columns = 4; // По 4 кресла в ряду
+        int columns = 4; // 4 кресла в ряду
 
         for (int i = 1; i <= capacity; i++) {
             Button seatBtn = new Button(String.valueOf(i));
             seatBtn.setPrefSize(50, 50);
 
             if (occupiedSeats.contains(i)) {
-                // Если место занято — красим в красный и блокируем
+                // Занято (Красный)
                 seatBtn.setStyle("-fx-background-color: #ffcdd2; -fx-text-fill: #c62828; -fx-font-weight: bold;");
                 seatBtn.setDisable(true);
             } else {
-                // Если место свободно — стандартный цвет
+                // Свободно (Серый)
                 seatBtn.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;");
                 int currentSeat = i;
-
-                // При клике на свободное место
-                seatBtn.setOnAction(_ -> handleSeatSelection(currentSeat, seatBtn));
+                seatBtn.setOnAction(e -> handleSeatSelection(currentSeat, seatBtn));
             }
 
-            // Математика рассадки: ряды и проход (gap) посередине
+            // Рассадка с проходом посередине
             int row = (i - 1) / columns;
             int col = (i - 1) % columns;
-            if (col >= 2) col++; // Делаем "проход" между 2 и 3 сиденьями
+            if (col >= 2) col++; // Проход
 
             seatsGrid.add(seatBtn, col, row);
         }
     }
 
-    /**
-     * Обработка выбора места
-     */
     private void handleSeatSelection(int seatNumber, Button seatBtn) {
-        // Сбрасываем цвет предыдущего выбранного места
         if (selectedSeatButton != null) {
             selectedSeatButton.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;");
         }
-
-        // Запоминаем новое и красим в зеленый
         selectedSeatNumber = seatNumber;
         selectedSeatButton = seatBtn;
+        // Выбрано (Зеленый)
         seatBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
     }
 
@@ -146,43 +136,38 @@ public class TicketSellController implements Initializable {
             String passport = passportField.getText().trim();
 
             if (selectedTrip == null || selectedStop == null || selectedSeatNumber == null || fio.isEmpty() || passport.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Внимание", "Пожалуйста, заполните все поля и выберите место на схеме!");
+                showAlert(Alert.AlertType.WARNING, "Внимание", "Пожалуйста, заполните все поля и выберите место!");
                 return;
             }
 
-            // Разбиваем ФИО на Фамилию, Имя, Отчество (по логике вашего старого C# кода)
+            // Разбиваем ФИО
             String[] nameParts = fio.split("\\s+");
             String lastName = nameParts.length > 0 ? nameParts[0] : "-";
             String firstName = nameParts.length > 1 ? nameParts[1] : "-";
             String middleName = nameParts.length > 2 ? nameParts[2] : "";
 
-            // TODO: Здесь должен быть вызов PassengerDao для получения или создания пассажира
-            // Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport);
+            // СОЗДАЕМ ИЛИ НАХОДИМ ПАССАЖИРА В БАЗЕ
             Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport);
 
             BigDecimal cost = new BigDecimal(costLabel.getText());
-            User currentUser = new User(); //Session.getCurrentUser(); // Берем реального кассира из сессии
+            User currentUser = Session.getCurrentUser();
 
+            // ПРОДАЕМ БИЛЕТ
             Ticket newTicket = ticketingService.sellTicket(
-                    selectedTrip,
-                    passenger,
-                    selectedStop.getStop(),
-                    currentUser,
-                    selectedSeatNumber,
-                    cost
+                    selectedTrip, passenger, selectedStop.getStop(),
+                    currentUser, selectedSeatNumber, cost
             );
 
-            showAlert(Alert.AlertType.INFORMATION, "Успех!", "Билет №" + newTicket.getTicketId() + " успешно оформлен!");
+            showAlert(Alert.AlertType.INFORMATION, "Успех!", "Билет успешно оформлен! Место: " + selectedSeatNumber);
 
-            // Сбрасываем форму и перерисовываем салон (чтобы только что купленное место стало красным)
+            // Сбрасываем форму
             fioField.clear();
             passportField.clear();
-            drawBusSeats(selectedTrip);
+            drawBusSeats(selectedTrip); // Место сразу станет красным
 
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Некорректный формат цены.");
-        } catch (RuntimeException e) {
-            showAlert(Alert.AlertType.ERROR, "Ошибка оформления", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Ошибка при оформлении", e);
+            showAlert(Alert.AlertType.ERROR, "Ошибка", e.getMessage());
         }
     }
 
@@ -194,8 +179,6 @@ public class TicketSellController implements Initializable {
         alert.showAndWait();
     }
 
-    // --- Вспомогательный DTO-класс для выпадающего списка остановок ---
-    // (Аналог класса StopItem из вашего файла TicketSaleForm.cs)
     public static class StopItem {
         private final Stop stop;
         private final BigDecimal price;

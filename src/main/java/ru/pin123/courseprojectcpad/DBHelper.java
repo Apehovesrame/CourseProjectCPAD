@@ -13,9 +13,12 @@ import java.util.Properties;
 
 public class DBHelper {
     private static final Logger logger = LoggerFactory.getLogger(DBHelper.class);
-    private static Connection connection;
     private static String dbUrlBase;
     private static String dbName;
+
+    // Сохраняем учетные данные текущего пользователя сессии
+    private static String savedUser;
+    private static String savedPassword;
 
     static {
         URL url = DBHelper.class.getResource("/config.properties");
@@ -37,30 +40,30 @@ public class DBHelper {
     }
 
     public static void initConnection(String user, String password) throws SQLException {
-        if (connection != null && !connection.isClosed()) {
-            closeConnection();
-        }
+        savedUser = user;
+        savedPassword = password;
         String fullUrl = dbUrlBase + dbName;
-        logger.info("Подключение к {} пользователем {}", fullUrl, user);
-        connection = DriverManager.getConnection(fullUrl, user, password);
-        logger.info("Соединение установлено");
+
+        logger.info("Тестовое подключение к {} пользователем {}", fullUrl, user);
+
+        // Просто проверяем, что логин/пароль верные, и сразу закрываем
+        try (Connection testConn = DriverManager.getConnection(fullUrl, user, password)) {
+            logger.info("Соединение успешно установлено и проверено");
+        }
     }
 
     public static Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
+        if (savedUser == null || savedPassword == null) {
             throw new SQLException("Соединение не инициализировано. Вызовите initConnection()");
         }
-        return connection;
+        // ВАЖНО: Выдаем НОВОЕ соединение каждый раз, чтобы try-with-resources мог безопасно его закрыть
+        return DriverManager.getConnection(dbUrlBase + dbName, savedUser, savedPassword);
     }
 
     public static void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                logger.info("Соединение закрыто");
-            } catch (SQLException ex) {
-                logger.error("Ошибка закрытия соединения", ex);
-            }
-        }
+        // Больше ничего не делаем вручную, соединения закрываются автоматически в DAO
+        logger.info("Очистка ресурсов БД завершена");
+        savedUser = null;
+        savedPassword = null;
     }
 }

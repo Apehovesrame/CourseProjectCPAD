@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane prefWidth="900.0" prefHeight="600.0"
+<BorderPane fx:id="mainBorderPane" prefWidth="1000.0" prefHeight="700.0"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="ru.pin123.courseprojectcpad.controller.MainController">
 
@@ -11,7 +11,7 @@
             <Region HBox.hgrow="ALWAYS" />
             <Label text="Язык / Language:" />
             <ComboBox fx:id="langSelector" onAction="#onLanguageChange" prefWidth="120.0" />
-            <Button text="Выйти" onAction="#onLogoutClick" style="-fx-cursor: hand;"/>
+            <Button text="Выйти из системы" onAction="#onLogoutClick" style="-fx-cursor: hand;"/>
         </HBox>
     </top>
 
@@ -26,20 +26,15 @@
             <Button text="Справочник автобусов" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0"/>
             <Button text="Справочник водителей" onAction="#onDriversClick" prefWidth="190.0" prefHeight="30.0"/>
             <Button text="База пассажиров" onAction="#onPassengersClick" prefWidth="190.0" prefHeight="30.0"/>
-
-            <Region VBox.vgrow="ALWAYS" />
-            <Button text="Выход из программы" onAction="#onExitClick" prefWidth="190.0" prefHeight="30.0" style="-fx-text-fill: #D32F2F;"/>
         </VBox>
     </left>
 
     <center>
-        <TabPane fx:id="mainTabPane" tabClosingPolicy="UNAVAILABLE">
-            <Tab text="Стартовая страница">
-                <VBox alignment="CENTER" spacing="10.0">
-                    <Label text="Пассажироперевозки" style="-fx-font-size: 32px; -fx-text-fill: #ccc; -fx-font-weight: bold;"/>
-                    <Label text="Выберите действие в меню слева" style="-fx-font-size: 16px; -fx-text-fill: #aaa;"/>
-                </VBox>
-            </Tab>
-        </TabPane>
+        <StackPane fx:id="contentArea" style="-fx-padding: 20;">
+            <VBox alignment="CENTER" spacing="10.0">
+                <Label text="Пассажироперевозки" style="-fx-font-size: 32px; -fx-text-fill: #ccc; -fx-font-weight: bold;"/>
+                <Label text="Выберите действие в меню слева" style="-fx-font-size: 16px; -fx-text-fill: #aaa;"/>
+            </VBox>
+        </StackPane>
     </center>
 </BorderPane>
