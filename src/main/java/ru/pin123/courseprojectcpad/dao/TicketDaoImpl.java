@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Ticket;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class TicketDaoImpl implements TicketDao {
 
     @Override
     public void create(Ticket ticket) {
-        String sql = "{? = CALL sell_ticket_func(?, ?, ?, ?, ?, ?)}";
+        String sql = PropertiesUtil.get("sql.ticket.sell");
 
         try (Connection conn = DBHelper.getConnection();
              CallableStatement cstmt = conn.prepareCall(sql)) {
@@ -42,7 +43,7 @@ public class TicketDaoImpl implements TicketDao {
 
     @Override
     public Optional<Ticket> findById(Long id) {
-        String sql = "SELECT * FROM Tickets WHERE ticket_id = ?";
+        String sql = PropertiesUtil.get("sql.ticket.find_by_id");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
@@ -60,7 +61,7 @@ public class TicketDaoImpl implements TicketDao {
     @Override
     public List<Ticket> findAll() {
         List<Ticket> tickets = new ArrayList<>();
-        String sql = "SELECT * FROM Tickets";
+        String sql = PropertiesUtil.get("sql.ticket.find_all");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -76,8 +77,7 @@ public class TicketDaoImpl implements TicketDao {
     @Override
     public List<Ticket> findTicketsByTripId(Long tripId) {
         List<Ticket> tickets = new ArrayList<>();
-        // Этот метод нужен контроллеру, чтобы понять, какие места в автобусе заблокировать (уже проданы)
-        String sql = "SELECT * FROM Tickets WHERE trip_id = ?";
+        String sql = PropertiesUtil.get("sql.ticket.find_by_trip_id");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, tripId);

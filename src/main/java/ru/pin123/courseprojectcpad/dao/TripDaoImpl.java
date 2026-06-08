@@ -5,6 +5,7 @@ import ru.pin123.courseprojectcpad.model.Driver;
 import ru.pin123.courseprojectcpad.model.Trip;
 import ru.pin123.courseprojectcpad.model.Route;
 import ru.pin123.courseprojectcpad.model.Bus;
+import ru.pin123.courseprojectcpad.PropertiesUtil; // Убедились, что утилита импортирована
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,9 +16,9 @@ public class TripDaoImpl implements TripDao {
 
     @Override
     public void create(Trip trip, List<Driver> drivers) {
-        String sqlTrip = "INSERT INTO trips (route_id, bus_id, created_by_user_id, departure_datetime, arrival_datetime, is_deleted) " +
-                "VALUES (?, ?, ?, ?, ?, false)";
-        String sqlDrivers = "INSERT INTO trips_drivers (trip_id, driver_id) VALUES (?, ?)";
+        // ИСПРАВЛЕНО: Загружаем SQL-запросы из файла statements.properties по ключам
+        String sqlTrip = PropertiesUtil.get("sql.trip.insert_trip");
+        String sqlDrivers = PropertiesUtil.get("sql.trip.insert_driver");
 
         // Открываем соединение
         try (Connection conn = DBHelper.getConnection()) {
@@ -74,9 +75,10 @@ public class TripDaoImpl implements TripDao {
     }
 
     public void update(Trip trip, List<Driver> drivers) {
-        String sqlTrip = "UPDATE trips SET route_id = ?, bus_id = ?, departure_datetime = ?, arrival_datetime = ? WHERE trip_id = ?";
-        String sqlDelDrivers = "DELETE FROM trips_drivers WHERE trip_id = ?";
-        String sqlInsDrivers = "INSERT INTO trips_drivers (trip_id, driver_id) VALUES (?, ?)";
+        // ИСПРАВЛЕНО: SQL-запросы вынесены во внешний файл конфигурации
+        String sqlTrip = PropertiesUtil.get("sql.trip.update_trip");
+        String sqlDelDrivers = PropertiesUtil.get("sql.trip.delete_drivers");
+        String sqlInsDrivers = PropertiesUtil.get("sql.trip.insert_driver");
 
         try (Connection conn = DBHelper.getConnection()) {
             conn.setAutoCommit(false); // Начинаем транзакцию
@@ -118,8 +120,8 @@ public class TripDaoImpl implements TripDao {
     }
 
     public void delete(Long tripId) {
-        // Мягкое удаление (чтобы проданные билеты не сломались)
-        String sql = "UPDATE trips SET is_deleted = true WHERE trip_id = ?";
+        // ИСПРАВЛЕНО: Вынесли мягкое удаление в statements.properties
+        String sql = PropertiesUtil.get("sql.trip.delete_trip");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, tripId);
@@ -138,15 +140,8 @@ public class TripDaoImpl implements TripDao {
     @Override
     public List<Trip> findAll() {
         List<Trip> trips = new ArrayList<>();
-        // ДОБАВЛЕН JOIN С ТАБЛИЦЕЙ АВТОБУСОВ
-        String sql = "SELECT t.*, " +
-                "r.route_number, r.departure_point, r.destination_point, " +
-                "b.model, b.license_plate, b.seat_capacity " +
-                "FROM trips t " +
-                "JOIN routes r ON t.route_id = r.route_id " +
-                "JOIN buses b ON t.bus_id = b.bus_id " +
-                "WHERE t.is_deleted = false " +
-                "ORDER BY t.departure_datetime DESC";
+        // ИСПРАВЛЕНО: Сложный запрос JOIN загружается по ключу динамически
+        String sql = PropertiesUtil.get("sql.trip.find_all");
 
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();

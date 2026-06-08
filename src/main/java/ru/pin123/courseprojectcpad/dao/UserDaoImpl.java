@@ -4,6 +4,7 @@ import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Role;
 import ru.pin123.courseprojectcpad.model.User;
 import ru.pin123.courseprojectcpad.util.HashHelper;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,12 +14,7 @@ import java.util.Optional;
 public class UserDaoImpl {
 
     public Optional<User> authenticate(String login, String passwordHash) {
-        // ИСПРАВЛЕНО: Добавили r.role_name в запрос
-        String sql = "SELECT u.user_id, u.role_id, u.login, u.last_name, u.first_name, u.middle_name, r.role_name " +
-                "FROM authorizations a " +
-                "JOIN users u ON a.login = u.login " +
-                "LEFT JOIN roles r ON u.role_id = r.role_id " +
-                "WHERE a.login = ? AND a.password_hash = ?";
+        String sql = PropertiesUtil.get("sql.user.authenticate");
 
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -52,7 +48,7 @@ public class UserDaoImpl {
 
     public List<Role> findAllRoles() {
         List<Role> roles = new ArrayList<>();
-        String sql = "SELECT * FROM roles";
+        String sql = PropertiesUtil.get("sql.user.find_all_roles");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -70,7 +66,7 @@ public class UserDaoImpl {
 
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.role_id ORDER BY u.last_name";
+        String sql = PropertiesUtil.get("sql.user.find_all");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -96,9 +92,8 @@ public class UserDaoImpl {
     }
 
     public void save(User user, String rawPassword) {
-        String sqlAuth = "INSERT INTO authorizations (login, password_hash) VALUES (?, ?)";
-        // ИСПРАВЛЕНО: Добавили middle_name в INSERT запроса
-        String sqlUser = "INSERT INTO users (login, last_name, first_name, middle_name, role_id) VALUES (?, ?, ?, ?, ?)";
+        String sqlAuth = PropertiesUtil.get("sql.user.insert_auth");
+        String sqlUser = PropertiesUtil.get("sql.user.insert_user");
 
         try (Connection conn = DBHelper.getConnection()) {
             conn.setAutoCommit(false);
@@ -130,9 +125,9 @@ public class UserDaoImpl {
     }
 
     public void delete(Long userId) {
-        String sqlSelectLogin = "SELECT login FROM users WHERE user_id = ?";
-        String sqlDeleteUser = "DELETE FROM users WHERE user_id = ?";
-        String sqlDeleteAuth = "DELETE FROM authorizations WHERE login = ?";
+        String sqlSelectLogin = PropertiesUtil.get("sql.user.find_login_by_id");
+        String sqlDeleteUser = PropertiesUtil.get("sql.user.delete_user");
+        String sqlDeleteAuth = PropertiesUtil.get("sql.user.delete_auth");
 
         try (Connection conn = DBHelper.getConnection()) {
             conn.setAutoCommit(false);

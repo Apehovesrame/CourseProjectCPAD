@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.RouteReportItem;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -14,14 +15,7 @@ public class ReportDaoImpl {
     public List<RouteReportItem> getSalesReport(LocalDate startDate, LocalDate endDate) {
         List<RouteReportItem> report = new ArrayList<>();
 
-        // SQL-запрос собирает пункт назначения, количество билетов и сумму (выручку)
-        String sql = "SELECT r.destination_point, COUNT(t.ticket_id) as tickets_count, SUM(t.cost) as total_revenue " +
-                "FROM tickets t " +
-                "JOIN trips tr ON t.trip_id = tr.trip_id " +
-                "JOIN routes r ON tr.route_id = r.route_id " +
-                "WHERE DATE(tr.departure_datetime) >= ? AND DATE(tr.departure_datetime) <= ? " +
-                "GROUP BY r.destination_point " +
-                "ORDER BY tickets_count DESC";
+        String sql = PropertiesUtil.get("sql.report.sales");
 
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

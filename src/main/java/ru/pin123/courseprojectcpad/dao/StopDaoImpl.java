@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Stop;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,8 +12,7 @@ public class StopDaoImpl {
 
     public List<Stop> findAll() {
         List<Stop> stops = new ArrayList<>();
-        // Сортируем по названию по алфавиту
-        String sql = "SELECT * FROM stops ORDER BY name";
+        String sql = PropertiesUtil.get("sql.stop.find_all");
 
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();

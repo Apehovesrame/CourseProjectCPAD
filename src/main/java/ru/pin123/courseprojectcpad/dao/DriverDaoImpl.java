@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Driver;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public class DriverDaoImpl {
 
     public List<Driver> findAll() {
         List<Driver> drivers = new ArrayList<>();
-        String sql = "SELECT * FROM drivers ORDER BY last_name, first_name";
+        String sql = PropertiesUtil.get("sql.driver.find_all");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -25,7 +26,7 @@ public class DriverDaoImpl {
                 driver.setAge(rs.getInt("age"));
                 driver.setPassport(rs.getString("passport"));
 
-                // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт (фото водителя)
+                // Чтение массива байт изображения из базы данных
                 driver.setDriverImage(rs.getBytes("driver_image"));
 
                 drivers.add(driver);
@@ -37,7 +38,7 @@ public class DriverDaoImpl {
     }
 
     public void save(Driver driver) {
-        String sql = "INSERT INTO drivers (last_name, first_name, middle_name, age, passport, driver_image) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = PropertiesUtil.get("sql.driver.insert");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, driver.getLastName());
@@ -46,12 +47,12 @@ public class DriverDaoImpl {
             pstmt.setInt(4, driver.getAge());
             pstmt.setString(5, driver.getPassport());
 
-            // КЛЮЧЕВОЙ МОМЕНТ: Запись фото
             if (driver.getDriverImage() != null) {
                 pstmt.setBytes(6, driver.getDriverImage());
             } else {
                 pstmt.setNull(6, Types.BINARY);
             }
+
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при сохранении водителя", e);
@@ -59,7 +60,7 @@ public class DriverDaoImpl {
     }
 
     public void update(Driver driver) {
-        String sql = "UPDATE drivers SET last_name = ?, first_name = ?, middle_name = ?, age = ?, passport = ?, driver_image = ? WHERE driver_id = ?";
+        String sql = PropertiesUtil.get("sql.driver.update");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, driver.getLastName());
@@ -68,12 +69,12 @@ public class DriverDaoImpl {
             pstmt.setInt(4, driver.getAge());
             pstmt.setString(5, driver.getPassport());
 
-            // КЛЮЧЕВОЙ МОМЕНТ: Обновление фото
             if (driver.getDriverImage() != null) {
                 pstmt.setBytes(6, driver.getDriverImage());
             } else {
                 pstmt.setNull(6, Types.BINARY);
             }
+
             pstmt.setLong(7, driver.getDriverId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -82,7 +83,7 @@ public class DriverDaoImpl {
     }
 
     public void delete(Long id) {
-        String sql = "DELETE FROM drivers WHERE driver_id = ?";
+        String sql = PropertiesUtil.get("sql.driver.delete");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);

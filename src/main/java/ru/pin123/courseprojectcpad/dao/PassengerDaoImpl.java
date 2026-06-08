@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Passenger;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public class PassengerDaoImpl {
 
     public List<Passenger> findAll() {
         List<Passenger> passengers = new ArrayList<>();
-        String sql = "SELECT * FROM passengers ORDER BY last_name, first_name";
+        String sql = PropertiesUtil.get("sql.passenger.find_all");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -22,8 +23,6 @@ public class PassengerDaoImpl {
                 p.setLastName(rs.getString("last_name"));
                 p.setFirstName(rs.getString("first_name"));
                 p.setMiddleName(rs.getString("middle_name"));
-
-                // ИСПРАВЛЕНО: setPassportNumber
                 p.setPassportNumber(rs.getString("passport"));
                 p.setBirthYear(rs.getInt("birth_year"));
                 passengers.add(p);
@@ -35,14 +34,12 @@ public class PassengerDaoImpl {
     }
 
     public void save(Passenger passenger) {
-        String sql = "INSERT INTO passengers (last_name, first_name, middle_name, passport, birth_year) VALUES (?, ?, ?, ?, ?)";
+        String sql = PropertiesUtil.get("sql.passenger.insert");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, passenger.getLastName());
             pstmt.setString(2, passenger.getFirstName());
             pstmt.setString(3, passenger.getMiddleName());
-
-            // ИСПРАВЛЕНО: getPassportNumber
             pstmt.setString(4, passenger.getPassportNumber());
             pstmt.setInt(5, passenger.getBirthYear());
             pstmt.executeUpdate();
@@ -52,14 +49,12 @@ public class PassengerDaoImpl {
     }
 
     public void update(Passenger passenger) {
-        String sql = "UPDATE passengers SET last_name = ?, first_name = ?, middle_name = ?, passport = ?, birth_year = ? WHERE passenger_id = ?";
+        String sql = PropertiesUtil.get("sql.passenger.update");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, passenger.getLastName());
             pstmt.setString(2, passenger.getFirstName());
             pstmt.setString(3, passenger.getMiddleName());
-
-            // ИСПРАВЛЕНО: getPassportNumber
             pstmt.setString(4, passenger.getPassportNumber());
             pstmt.setInt(5, passenger.getBirthYear());
             pstmt.setLong(6, passenger.getPassengerId());
@@ -70,7 +65,7 @@ public class PassengerDaoImpl {
     }
 
     public void delete(Long id) {
-        String sql = "DELETE FROM passengers WHERE passenger_id = ?";
+        String sql = PropertiesUtil.get("sql.passenger.delete");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
@@ -81,7 +76,7 @@ public class PassengerDaoImpl {
     }
 
     public Passenger getOrCreate(String lastName, String firstName, String middleName, String passport, int birthYear) {
-        String findSql = "SELECT * FROM passengers WHERE passport = ?";
+        String findSql = PropertiesUtil.get("sql.passenger.find_by_passport");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement findStmt = conn.prepareStatement(findSql)) {
 
@@ -93,8 +88,6 @@ public class PassengerDaoImpl {
                     p.setLastName(rs.getString("last_name"));
                     p.setFirstName(rs.getString("first_name"));
                     p.setMiddleName(rs.getString("middle_name"));
-
-                    // ИСПРАВЛЕНО: setPassportNumber
                     p.setPassportNumber(rs.getString("passport"));
                     p.setBirthYear(rs.getInt("birth_year"));
                     return p;
@@ -105,12 +98,10 @@ public class PassengerDaoImpl {
             newPassenger.setLastName(lastName);
             newPassenger.setFirstName(firstName);
             newPassenger.setMiddleName(middleName);
-
-            // ИСПРАВЛЕНО: setPassportNumber
             newPassenger.setPassportNumber(passport);
             newPassenger.setBirthYear(birthYear);
 
-            String insertSql = "INSERT INTO passengers (last_name, first_name, middle_name, passport, birth_year) VALUES (?, ?, ?, ?, ?)";
+            String insertSql = PropertiesUtil.get("sql.passenger.insert");
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, lastName);
                 insertStmt.setString(2, firstName);

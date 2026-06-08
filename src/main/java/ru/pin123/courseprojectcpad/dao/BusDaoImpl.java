@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Bus;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public class BusDaoImpl {
 
     public List<Bus> findAll() {
         List<Bus> buses = new ArrayList<>();
-        String sql = "SELECT * FROM buses ORDER BY model";
+        String sql = PropertiesUtil.get("sql.bus.find_all");
 
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
@@ -24,8 +25,6 @@ public class BusDaoImpl {
                 bus.setModel(rs.getString("model"));
                 bus.setLicensePlate(rs.getString("license_plate"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
-
-                // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт из колонки bus_image (тип bytea)
                 bus.setBusImage(rs.getBytes("bus_image"));
 
                 buses.add(bus);
@@ -37,19 +36,17 @@ public class BusDaoImpl {
     }
 
     public void save(Bus bus) {
-        // Заменили photo_path на bus_image в INSERT
-        String sql = "INSERT INTO buses (model, license_plate, seat_capacity, bus_image) VALUES (?, ?, ?, ?)";
+        String sql = PropertiesUtil.get("sql.bus.insert");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
 
-            // КЛЮЧЕВОЙ МОМЕНТ: Запись bytea с проверкой на null
             if (bus.getBusImage() != null) {
                 pstmt.setBytes(4, bus.getBusImage());
             } else {
-                pstmt.setNull(4, java.sql.Types.BINARY); // Безопасно пишем NULL в базу
+                pstmt.setNull(4, java.sql.Types.BINARY);
             }
 
             pstmt.executeUpdate();
@@ -59,15 +56,13 @@ public class BusDaoImpl {
     }
 
     public void update(Bus bus) {
-        // Заменили photo_path на bus_image в UPDATE
-        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ?, bus_image = ? WHERE bus_id = ?";
+        String sql = PropertiesUtil.get("sql.bus.update");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
 
-            // КЛЮЧЕВОЙ МОМЕНТ: Обновление bytea с проверкой на null
             if (bus.getBusImage() != null) {
                 pstmt.setBytes(4, bus.getBusImage());
             } else {
@@ -82,7 +77,7 @@ public class BusDaoImpl {
     }
 
     public void delete(Long id) {
-        String sql = "DELETE FROM buses WHERE bus_id = ?";
+        String sql = PropertiesUtil.get("sql.bus.delete");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
@@ -93,7 +88,7 @@ public class BusDaoImpl {
     }
 
     public Optional<Bus> findById(Long id) {
-        String sql = "SELECT * FROM buses WHERE bus_id = ?";
+        String sql = PropertiesUtil.get("sql.bus.find_by_id");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -105,8 +100,6 @@ public class BusDaoImpl {
                     bus.setModel(rs.getString("model"));
                     bus.setLicensePlate(rs.getString("license_plate"));
                     bus.setSeatCapacity(rs.getInt("seat_capacity"));
-
-                    // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт в findById
                     bus.setBusImage(rs.getBytes("bus_image"));
 
                     return Optional.of(bus);

@@ -2,6 +2,7 @@ package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Route;
+import ru.pin123.courseprojectcpad.PropertiesUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public class RouteDaoImpl {
 
     public List<Route> findAll() {
         List<Route> routes = new ArrayList<>();
-        String sql = "SELECT * FROM routes ORDER BY departure_point, destination_point";
+        String sql = PropertiesUtil.get("sql.route.find_all");
         try (Connection conn = DBHelper.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -32,7 +33,7 @@ public class RouteDaoImpl {
     }
 
     public void save(Route route) {
-        String sql = "INSERT INTO routes (route_number, departure_point, destination_point, duration_minutes) VALUES (?, ?, ?, ?)";
+        String sql = PropertiesUtil.get("sql.route.insert");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, route.getRouteNumber());
@@ -46,7 +47,7 @@ public class RouteDaoImpl {
     }
 
     public void update(Route route) {
-        String sql = "UPDATE routes SET route_number = ?, departure_point = ?, destination_point = ?, duration_minutes = ? WHERE route_id = ?";
+        String sql = PropertiesUtil.get("sql.route.update");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, route.getRouteNumber());
@@ -61,7 +62,7 @@ public class RouteDaoImpl {
     }
 
     public void delete(Long id) {
-        String sql = "DELETE FROM routes WHERE route_id = ?";
+        String sql = PropertiesUtil.get("sql.route.delete");
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, id);
