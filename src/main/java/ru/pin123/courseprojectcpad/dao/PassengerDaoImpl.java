@@ -23,7 +23,7 @@ public class PassengerDaoImpl {
                 p.setLastName(rs.getString("last_name"));
                 p.setFirstName(rs.getString("first_name"));
                 p.setMiddleName(rs.getString("middle_name"));
-                p.setPassportNumber(rs.getString("passport"));
+                p.setPassportNumber(rs.getString("passport_number"));
                 p.setBirthYear(rs.getInt("birth_year"));
                 passengers.add(p);
             }
@@ -88,7 +88,7 @@ public class PassengerDaoImpl {
                     p.setLastName(rs.getString("last_name"));
                     p.setFirstName(rs.getString("first_name"));
                     p.setMiddleName(rs.getString("middle_name"));
-                    p.setPassportNumber(rs.getString("passport"));
+                    p.setPassportNumber(rs.getString("passport_number"));
                     p.setBirthYear(rs.getInt("birth_year"));
                     return p;
                 }

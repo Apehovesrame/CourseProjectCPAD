@@ -8,6 +8,8 @@
                 <TableColumn fx:id="colLastName" text="Фамилия" prefWidth="150"/>
                 <TableColumn fx:id="colFirstName" text="Имя" prefWidth="150"/>
                 <TableColumn fx:id="colMiddleName" text="Отчество" prefWidth="150"/>
+                <TableColumn fx:id="colAge" text="Возраст" prefWidth="100"/>
+                <TableColumn fx:id="colPassport" text="Паспорт" prefWidth="150"/>
             </columns>
         </TableView>
         <HBox spacing="10">

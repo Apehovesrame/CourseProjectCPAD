@@ -29,13 +29,14 @@ public class MainController {
     @FXML
     public void initialize() {
         if (langSelector != null) {
-            langSelector.setItems(FXCollections.observableArrayList("Русский", "English", "Deutsch"));
+            langSelector.setItems(FXCollections.observableArrayList("Русский", "English"));
+
             String currentLang = Locale.getDefault().getLanguage();
             if (currentLang.equals("en")) {
+                Locale.setDefault(new Locale("en"));
                 langSelector.setValue("English");
-            } else if (currentLang.equals("de")) {
-                langSelector.setValue("Deutsch");
             } else {
+                Locale.setDefault(new Locale("ru", "RU"));
                 langSelector.setValue("Русский");
             }
         }
@@ -51,8 +52,6 @@ public class MainController {
         String selected = langSelector.getValue();
         if ("English".equals(selected)) {
             Locale.setDefault(new Locale("en"));
-        } else if ("Deutsch".equals(selected)) {
-            Locale.setDefault(new Locale("de"));
         } else {
             Locale.setDefault(new Locale("ru", "RU"));
         }
