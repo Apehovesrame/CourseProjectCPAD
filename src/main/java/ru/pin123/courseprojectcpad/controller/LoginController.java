@@ -12,9 +12,17 @@ import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Session;
 import ru.pin123.courseprojectcpad.service.AuthService;
 
+// ИСПРАВЛЕНО: Добавили импорты для логирования и локализации
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class LoginController {
+
+    // ИСПРАВЛЕНО: Создали логгер для текущего класса
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @FXML private TextField txtLogin;
     @FXML private PasswordField txtPassword;
@@ -23,25 +31,39 @@ public class LoginController {
 
     @FXML
     public void onLoginClick(ActionEvent event) {
+        // ИСПРАВЛЕНО: Подгружаем бандл локализации (из папки ресурсов)
+        ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
+
         try {
-            String login = txtLogin.getText();
-            String password = txtPassword.getText();
+            String login = txtLogin.getText() != null ? txtLogin.getText().trim() : "";
+            String password = txtPassword.getText() != null ? txtPassword.getText() : "";
+
+            if (login.isEmpty() || password.isEmpty()) {
+                logger.warn("Неудачная попытка входа: пустые поля ввода.");
+                showAlert(Alert.AlertType.ERROR, bundle.getString("alert.error.title"), bundle.getString("alert.error.empty_fields"));
+                return;
+            }
 
             // Авторизуем пользователя
             authService.login(login, password);
 
             String userName = Session.getCurrentUser().getFirstName();
-            showAlert(Alert.AlertType.INFORMATION, "Успех", "Добро пожаловать, " + userName + "!");
 
-            // --- МЕХАНИЗМ ПЕРЕКЛЮЧЕНИЯ ОКНА ---
+            // ИСПРАВЛЕНО: Логируем успешный вход сотрудника
+            logger.info("Пользователь [{}] ({}) успешно вошел в систему.", login, userName);
 
-            // 1. Загружаем файл главного окна
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml"));
+            String welcomeMessage = bundle.getString("alert.success.welcome") + ", " + userName + "!";
+            showAlert(Alert.AlertType.INFORMATION, bundle.getString("alert.success.title"), welcomeMessage);
+
+            // --- МЕХАНИЗМ ПЕРЕКЛЮЧЕНИЯ ОКНА С ЛОКАЛИЗАЦИЕЙ ---
+
+            // 1. Передаем bundle в FXMLLoader, чтобы главное окно открылось на нужном языке!
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml"), bundle);
             Parent mainRoot = loader.load();
 
             // 2. Создаем новую сцену
             Stage stage = new Stage();
-            stage.setTitle("Система учета пассажироперевозок");
+            stage.setTitle(bundle.getString("app.title")); // Заголовок окна из ресурсов
             stage.setScene(new Scene(mainRoot));
             stage.show();
 
@@ -49,10 +71,13 @@ public class LoginController {
             txtLogin.getScene().getWindow().hide();
 
         } catch (RuntimeException e) {
-            // RuntimeException перехватывает и IllegalArgumentException, и другие ошибки времени выполнения
-            showAlert(Alert.AlertType.ERROR, "Ошибка входа", e.getMessage());
+            // ИСПРАВЛЕНО: Логируем ошибку неверного пароля или проблемы БД
+            logger.error("Ошибка авторизации для логина [{}]: {}", txtLogin.getText(), e.getMessage());
+            showAlert(Alert.AlertType.ERROR, bundle.getString("alert.error.title"), e.getMessage());
         } catch (IOException e) {
-            showAlert(Alert.AlertType.ERROR, "Ошибка интерфейса", "Не удалось загрузить главное окно: " + e.getMessage());
+            // ИСПРАВЛЕНО: Логируем критическую ошибку загрузки FXML файла
+            logger.error("Критическая ошибка интерфейса при загрузке main-view.fxml", e);
+            showAlert(Alert.AlertType.ERROR, bundle.getString("alert.error.title"), bundle.getString("alert.error.io_exception") + " " + e.getMessage());
         }
     }
 

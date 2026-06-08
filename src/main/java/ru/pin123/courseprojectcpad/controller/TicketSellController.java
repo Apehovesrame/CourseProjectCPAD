@@ -29,6 +29,8 @@ public class TicketSellController implements Initializable {
     private final StopDaoImpl stopDao = new StopDaoImpl();
     private final TicketingService ticketingService = new TicketingService();
 
+    @FXML private Button sellButton;
+    @FXML private TextField birthYearField;
     @FXML private ListView<Trip> tripsListView;
     @FXML private ComboBox<StopItem> stopComboBox;
     @FXML private Label costLabel;
@@ -134,40 +136,79 @@ public class TicketSellController implements Initializable {
             StopItem selectedStop = stopComboBox.getValue();
             String fio = fioField.getText().trim();
             String passport = passportField.getText().trim();
+            String birthYearStr = birthYearField.getText().trim(); // <-- Новое поле
 
-            if (selectedTrip == null || selectedStop == null || selectedSeatNumber == null || fio.isEmpty() || passport.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Внимание", "Пожалуйста, заполните все поля и выберите место!");
+            if (selectedTrip == null || selectedStop == null || selectedSeatNumber == null ||
+                    fio.isEmpty() || passport.isEmpty() || birthYearStr.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Внимание", "Заполните все поля и выберите место!");
                 return;
             }
 
-            // Разбиваем ФИО
+            int birthYear = Integer.parseInt(birthYearStr);
+
             String[] nameParts = fio.split("\\s+");
             String lastName = nameParts.length > 0 ? nameParts[0] : "-";
             String firstName = nameParts.length > 1 ? nameParts[1] : "-";
             String middleName = nameParts.length > 2 ? nameParts[2] : "";
 
-            // СОЗДАЕМ ИЛИ НАХОДИМ ПАССАЖИРА В БАЗЕ
-            Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport);
+            // 1. Создаем или получаем пассажира (теперь с годом рождения!)
+            Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport, birthYear);
 
             BigDecimal cost = new BigDecimal(costLabel.getText());
             User currentUser = Session.getCurrentUser();
 
-            // ПРОДАЕМ БИЛЕТ
+            // 2. Оформляем билет в базе
             Ticket newTicket = ticketingService.sellTicket(
-                    selectedTrip, passenger, selectedStop.getStop(),
-                    currentUser, selectedSeatNumber, cost
+                    selectedTrip, passenger, selectedStop.getStop(), currentUser, selectedSeatNumber, cost
             );
 
-            showAlert(Alert.AlertType.INFORMATION, "Успех!", "Билет успешно оформлен! Место: " + selectedSeatNumber);
+            // 3. ГЕНЕРАЦИЯ УНИКАЛЬНОГО РЕГИСТРАЦИОННОГО НОМЕРА (Требование ТЗ)
+            // Формат: TKT-МесяцДень-СлучайныеЦифры (например: TKT-0606-4581)
+            String regNumber = String.format("TKT-%02d%02d-%04d",
+                    java.time.LocalDate.now().getMonthValue(),
+                    java.time.LocalDate.now().getDayOfMonth(),
+                    (int)(Math.random() * 10000));
+
+            String saleDate = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+            String depDate = selectedTrip.getDepartureDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+
+            // 4. ПОКАЗЫВАЕМ КРАСИВЫЙ ЧЕК
+            showReceipt(regNumber, fio + " (Паспорт: " + passport + ")",
+                    selectedTrip.getRoute().getDeparturePoint() + " - " + selectedTrip.getRoute().getDestinationPoint(),
+                    selectedTrip.getBus().getModel() + " (" + selectedTrip.getBus().getLicensePlate() + ")",
+                    String.valueOf(selectedSeatNumber), depDate, saleDate, cost.toString());
 
             // Сбрасываем форму
             fioField.clear();
             passportField.clear();
-            drawBusSeats(selectedTrip); // Место сразу станет красным
+            birthYearField.clear();
+            drawBusSeats(selectedTrip);
 
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.ERROR, "Ошибка", "Год рождения должен быть числом!");
         } catch (Exception e) {
-            logger.error("Ошибка при оформлении", e);
             showAlert(Alert.AlertType.ERROR, "Ошибка", e.getMessage());
+        }
+    }
+
+    // Метод для открытия окна чека
+    private void showReceipt(String regNum, String pass, String route, String bus, String seat, String dep, String sale, String cost) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/ticket-receipt-view.fxml"));
+            javafx.scene.layout.AnchorPane page = loader.load();
+
+            javafx.stage.Stage dialogStage = new javafx.stage.Stage();
+            dialogStage.setTitle("Маршрутная квитанция");
+            dialogStage.initModality(javafx.stage.Modality.WINDOW_MODAL);
+            dialogStage.setScene(new javafx.scene.Scene(page));
+
+            TicketReceiptController controller = loader.getController();
+            controller.setDialogStage(dialogStage);
+            controller.setTicketData(regNum, pass, route, bus, seat, dep, sale, cost);
+
+            dialogStage.showAndWait();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
         }
     }
 

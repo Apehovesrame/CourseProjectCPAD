@@ -24,7 +24,10 @@ public class BusDaoImpl {
                 bus.setModel(rs.getString("model"));
                 bus.setLicensePlate(rs.getString("license_plate"));
                 bus.setSeatCapacity(rs.getInt("seat_capacity"));
-                bus.setPhotoPath(rs.getString("photo_path")); // <-- Чтение фото
+
+                // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт из колонки bus_image (тип bytea)
+                bus.setBusImage(rs.getBytes("bus_image"));
+
                 buses.add(bus);
             }
         } catch (SQLException e) {
@@ -34,14 +37,21 @@ public class BusDaoImpl {
     }
 
     public void save(Bus bus) {
-        // Добавили photo_path в INSERT
-        String sql = "INSERT INTO buses (model, license_plate, seat_capacity, photo_path) VALUES (?, ?, ?, ?)";
+        // Заменили photo_path на bus_image в INSERT
+        String sql = "INSERT INTO buses (model, license_plate, seat_capacity, bus_image) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
-            pstmt.setString(4, bus.getPhotoPath()); // <-- Сохранение фото
+
+            // КЛЮЧЕВОЙ МОМЕНТ: Запись bytea с проверкой на null
+            if (bus.getBusImage() != null) {
+                pstmt.setBytes(4, bus.getBusImage());
+            } else {
+                pstmt.setNull(4, java.sql.Types.BINARY); // Безопасно пишем NULL в базу
+            }
+
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при сохранении автобуса", e);
@@ -49,14 +59,21 @@ public class BusDaoImpl {
     }
 
     public void update(Bus bus) {
-        // Добавили photo_path в UPDATE
-        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ?, photo_path = ? WHERE bus_id = ?";
+        // Заменили photo_path на bus_image в UPDATE
+        String sql = "UPDATE buses SET model = ?, license_plate = ?, seat_capacity = ?, bus_image = ? WHERE bus_id = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, bus.getModel());
             pstmt.setString(2, bus.getLicensePlate());
             pstmt.setInt(3, bus.getSeatCapacity());
-            pstmt.setString(4, bus.getPhotoPath()); // <-- Обновление фото
+
+            // КЛЮЧЕВОЙ МОМЕНТ: Обновление bytea с проверкой на null
+            if (bus.getBusImage() != null) {
+                pstmt.setBytes(4, bus.getBusImage());
+            } else {
+                pstmt.setNull(4, java.sql.Types.BINARY);
+            }
+
             pstmt.setLong(5, bus.getBusId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -88,7 +105,10 @@ public class BusDaoImpl {
                     bus.setModel(rs.getString("model"));
                     bus.setLicensePlate(rs.getString("license_plate"));
                     bus.setSeatCapacity(rs.getInt("seat_capacity"));
-                    bus.setPhotoPath(rs.getString("photo_path")); // <-- Чтение фото
+
+                    // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт в findById
+                    bus.setBusImage(rs.getBytes("bus_image"));
+
                     return Optional.of(bus);
                 }
             }

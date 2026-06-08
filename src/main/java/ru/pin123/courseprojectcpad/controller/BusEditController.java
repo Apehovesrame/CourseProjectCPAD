@@ -9,7 +9,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Bus;
 
+import java.io.ByteArrayInputStream; // Добавили для чтения картинки из байт
 import java.io.File;
+import java.nio.file.Files;         // Добавили для быстрого чтения файла в byte[]
 
 public class BusEditController {
     @FXML private TextField tfModel;
@@ -20,7 +22,9 @@ public class BusEditController {
     private Stage dialogStage;
     private Bus bus;
     private boolean isOkClicked = false;
-    private String photoPath = null;
+
+    // КЛЮЧЕВОЙ МОМЕНТ: Вместо пути к файлу теперь храним массив байт
+    private byte[] busImageBytes = null;
 
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
@@ -32,12 +36,13 @@ public class BusEditController {
         if (bus.getLicensePlate() != null) tfLicensePlate.setText(bus.getLicensePlate());
         if (bus.getSeatCapacity() > 0) tfSeatCapacity.setText(String.valueOf(bus.getSeatCapacity()));
 
-        if (bus.getPhotoPath() != null && !bus.getPhotoPath().isEmpty()) {
-            this.photoPath = bus.getPhotoPath();
-            File file = new File(photoPath);
-            if (file.exists()) {
-                imgPreview.setImage(new Image(file.toURI().toString()));
-            }
+        // КЛЮЧЕВОЙ МОМЕНТ: Если у автобуса уже есть изображение в байтах, показываем его в превью
+        if (bus.getBusImage() != null && bus.getBusImage().length > 0) {
+            this.busImageBytes = bus.getBusImage();
+            ByteArrayInputStream bis = new ByteArrayInputStream(busImageBytes);
+            imgPreview.setImage(new Image(bis));
+        } else {
+            imgPreview.setImage(null);
         }
     }
 
@@ -55,8 +60,20 @@ public class BusEditController {
 
         File file = fileChooser.showOpenDialog(dialogStage);
         if (file != null) {
-            photoPath = file.getAbsolutePath(); // Сохраняем абсолютный путь
-            imgPreview.setImage(new Image(file.toURI().toString())); // Показываем превью
+            try {
+                // КЛЮЧЕВОЙ МОМЕНТ: Читаем все байты выбранного файла в массив
+                this.busImageBytes = Files.readAllBytes(file.toPath());
+
+                // Отображаем превью в интерфейсе напрямую из файла для скорости
+                imgPreview.setImage(new Image(file.toURI().toString()));
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(dialogStage);
+                alert.setTitle("Ошибка чтения файла");
+                alert.setHeaderText("Не удалось загрузить изображение");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            }
         }
     }
 
@@ -66,7 +83,9 @@ public class BusEditController {
             bus.setModel(tfModel.getText().trim());
             bus.setLicensePlate(tfLicensePlate.getText().trim());
             bus.setSeatCapacity(Integer.parseInt(tfSeatCapacity.getText().trim()));
-            bus.setPhotoPath(photoPath); // Сохраняем путь к фото в объект
+
+            // КЛЮЧЕВОЙ МОМЕНТ: Записываем массив байт в объект автобуса
+            bus.setBusImage(busImageBytes);
 
             isOkClicked = true;
             dialogStage.close();
@@ -88,7 +107,7 @@ public class BusEditController {
             errorMessage += "Не указана вместимость!\n";
         } else {
             try {
-                int capacity = Integer.parseInt(tfSeatCapacity.getText());
+                int capacity = Integer.parseInt(tfSeatCapacity.getText().trim());
                 if (capacity <= 0) errorMessage += "Вместимость должна быть больше нуля!\n";
             } catch (NumberFormatException e) {
                 errorMessage += "Вместимость должна быть целым числом!\n";

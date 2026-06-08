@@ -13,6 +13,9 @@ public class PassengerEditController {
     @FXML private TextField tfMiddleName;
     @FXML private TextField tfPassport;
 
+    // ДОБАВЛЕНО ПОЛЕ: Год рождения
+    @FXML private TextField tfBirthYear;
+
     private Stage dialogStage;
     private Passenger passenger;
     private boolean isOkClicked = false;
@@ -26,7 +29,11 @@ public class PassengerEditController {
         if (passenger.getLastName() != null) tfLastName.setText(passenger.getLastName());
         if (passenger.getFirstName() != null) tfFirstName.setText(passenger.getFirstName());
         if (passenger.getMiddleName() != null) tfMiddleName.setText(passenger.getMiddleName());
-        if (passenger.getPassport() != null) tfPassport.setText(passenger.getPassport());
+
+        // ИСПРАВЛЕНО: getPassportNumber()
+        if (passenger.getPassportNumber() != null) tfPassport.setText(passenger.getPassportNumber());
+
+        if (passenger.getBirthYear() > 0) tfBirthYear.setText(String.valueOf(passenger.getBirthYear()));
     }
 
     public boolean isOkClicked() {
@@ -39,7 +46,11 @@ public class PassengerEditController {
             passenger.setLastName(tfLastName.getText().trim());
             passenger.setFirstName(tfFirstName.getText().trim());
             passenger.setMiddleName(tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "");
-            passenger.setPassport(tfPassport.getText().trim());
+
+            // ИСПРАВЛЕНО: setPassportNumber()
+            passenger.setPassportNumber(tfPassport.getText().trim());
+
+            passenger.setBirthYear(Integer.parseInt(tfBirthYear.getText().trim()));
 
             isOkClicked = true;
             dialogStage.close();
@@ -57,6 +68,19 @@ public class PassengerEditController {
         if (tfLastName.getText() == null || tfLastName.getText().trim().isEmpty()) errorMessage.append("Не указана фамилия!\n");
         if (tfFirstName.getText() == null || tfFirstName.getText().trim().isEmpty()) errorMessage.append("Не указано имя!\n");
         if (tfPassport.getText() == null || tfPassport.getText().trim().isEmpty()) errorMessage.append("Не указаны паспортные данные!\n");
+
+        if (tfBirthYear.getText() == null || tfBirthYear.getText().trim().isEmpty()) {
+            errorMessage.append("Не указан год рождения!\n");
+        } else {
+            try {
+                int year = Integer.parseInt(tfBirthYear.getText().trim());
+                if (year < 1900 || year > java.time.LocalDate.now().getYear()) {
+                    errorMessage.append("Некорректный год рождения!\n");
+                }
+            } catch (NumberFormatException e) {
+                errorMessage.append("Год рождения должен быть числом!\n");
+            }
+        }
 
         if (errorMessage.length() == 0) {
             return true;

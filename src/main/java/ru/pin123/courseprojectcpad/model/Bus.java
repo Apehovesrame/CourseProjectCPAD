@@ -5,13 +5,22 @@ public class Bus {
     private String licensePlate;
     private String model;
     private int seatCapacity;
-    private String photoPath;
+    private byte[] busImage; // Поле для хранения бинарных данных (картинки) из bytea
 
-    public String getPhotoPath() { return photoPath; }
-    public void setPhotoPath(String photoPath) { this.photoPath = photoPath; }
+    // Пустой конструктор (нужен для некоторых библиотек/фреймворков)
     public Bus() {
     }
 
+    // Удобный конструктор для создания объектов (например, при чтении из БД)
+    public Bus(Long busId, String model, String licensePlate, int seatCapacity, byte[] busImage) {
+        this.busId = busId;
+        this.model = model;
+        this.licensePlate = licensePlate;
+        this.seatCapacity = seatCapacity;
+        this.busImage = busImage;
+    }
+
+    // Геттеры и Сеттеры
     public Long getBusId() {
         return busId;
     }
@@ -42,6 +51,14 @@ public class Bus {
 
     public void setSeatCapacity(int seatCapacity) {
         this.seatCapacity = seatCapacity;
+    }
+
+    public byte[] getBusImage() {
+        return busImage;
+    }
+
+    public void setBusImage(byte[] busImage) {
+        this.busImage = busImage;
     }
 
     @Override

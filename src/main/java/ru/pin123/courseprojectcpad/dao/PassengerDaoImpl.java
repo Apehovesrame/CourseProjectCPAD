@@ -22,7 +22,10 @@ public class PassengerDaoImpl {
                 p.setLastName(rs.getString("last_name"));
                 p.setFirstName(rs.getString("first_name"));
                 p.setMiddleName(rs.getString("middle_name"));
-                p.setPassport(rs.getString("passport"));
+
+                // ИСПРАВЛЕНО: setPassportNumber
+                p.setPassportNumber(rs.getString("passport"));
+                p.setBirthYear(rs.getInt("birth_year"));
                 passengers.add(p);
             }
         } catch (SQLException e) {
@@ -32,13 +35,16 @@ public class PassengerDaoImpl {
     }
 
     public void save(Passenger passenger) {
-        String sql = "INSERT INTO passengers (last_name, first_name, middle_name, passport) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO passengers (last_name, first_name, middle_name, passport, birth_year) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, passenger.getLastName());
             pstmt.setString(2, passenger.getFirstName());
             pstmt.setString(3, passenger.getMiddleName());
-            pstmt.setString(4, passenger.getPassport());
+
+            // ИСПРАВЛЕНО: getPassportNumber
+            pstmt.setString(4, passenger.getPassportNumber());
+            pstmt.setInt(5, passenger.getBirthYear());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при сохранении пассажира", e);
@@ -46,14 +52,17 @@ public class PassengerDaoImpl {
     }
 
     public void update(Passenger passenger) {
-        String sql = "UPDATE passengers SET last_name = ?, first_name = ?, middle_name = ?, passport = ? WHERE passenger_id = ?";
+        String sql = "UPDATE passengers SET last_name = ?, first_name = ?, middle_name = ?, passport = ?, birth_year = ? WHERE passenger_id = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, passenger.getLastName());
             pstmt.setString(2, passenger.getFirstName());
             pstmt.setString(3, passenger.getMiddleName());
-            pstmt.setString(4, passenger.getPassport());
-            pstmt.setLong(5, passenger.getPassengerId());
+
+            // ИСПРАВЛЕНО: getPassportNumber
+            pstmt.setString(4, passenger.getPassportNumber());
+            pstmt.setInt(5, passenger.getBirthYear());
+            pstmt.setLong(6, passenger.getPassengerId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при обновлении пассажира", e);
@@ -67,12 +76,11 @@ public class PassengerDaoImpl {
             pstmt.setLong(1, id);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при удалении пассажира (возможно, на него уже оформлен билет)", e);
+            throw new RuntimeException("Ошибка при удалении пассажира", e);
         }
     }
 
-    // Этот метод нужен для продажи билетов (ищет по паспорту или создает нового)
-    public Passenger getOrCreate(String lastName, String firstName, String middleName, String passport) {
+    public Passenger getOrCreate(String lastName, String firstName, String middleName, String passport, int birthYear) {
         String findSql = "SELECT * FROM passengers WHERE passport = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement findStmt = conn.prepareStatement(findSql)) {
@@ -85,24 +93,30 @@ public class PassengerDaoImpl {
                     p.setLastName(rs.getString("last_name"));
                     p.setFirstName(rs.getString("first_name"));
                     p.setMiddleName(rs.getString("middle_name"));
-                    p.setPassport(rs.getString("passport"));
+
+                    // ИСПРАВЛЕНО: setPassportNumber
+                    p.setPassportNumber(rs.getString("passport"));
+                    p.setBirthYear(rs.getInt("birth_year"));
                     return p;
                 }
             }
 
-            // Если не нашли — создаем
             Passenger newPassenger = new Passenger();
             newPassenger.setLastName(lastName);
             newPassenger.setFirstName(firstName);
             newPassenger.setMiddleName(middleName);
-            newPassenger.setPassport(passport);
 
-            String insertSql = "INSERT INTO passengers (last_name, first_name, middle_name, passport) VALUES (?, ?, ?, ?)";
+            // ИСПРАВЛЕНО: setPassportNumber
+            newPassenger.setPassportNumber(passport);
+            newPassenger.setBirthYear(birthYear);
+
+            String insertSql = "INSERT INTO passengers (last_name, first_name, middle_name, passport, birth_year) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
                 insertStmt.setString(1, lastName);
                 insertStmt.setString(2, firstName);
                 insertStmt.setString(3, middleName);
                 insertStmt.setString(4, passport);
+                insertStmt.setInt(5, birthYear);
                 insertStmt.executeUpdate();
 
                 try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {

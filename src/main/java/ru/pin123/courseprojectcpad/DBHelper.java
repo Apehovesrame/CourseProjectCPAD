@@ -4,8 +4,7 @@ import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.net.URL;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -15,55 +14,47 @@ public class DBHelper {
     private static final Logger logger = LoggerFactory.getLogger(DBHelper.class);
     private static String dbUrlBase;
     private static String dbName;
-
-    // Сохраняем учетные данные текущего пользователя сессии
-    private static String savedUser;
-    private static String savedPassword;
+    private static String dbUser;     // Системный пользователь БД
+    private static String dbPassword; // Пароль системного пользователя БД
 
     static {
-        URL url = DBHelper.class.getResource("/config.properties");
-        if (url != null) {
-            Properties prop = new Properties();
-            try (FileInputStream fis = new FileInputStream(url.getFile())) {
-                prop.load(fis);
+        // Безопасное чтение файла настроек из ресурсов (работает даже в скомпилированном JAR)
+        try (InputStream is = DBHelper.class.getResourceAsStream("/config.properties")) {
+            if (is != null) {
+                Properties prop = new Properties();
+                prop.load(is);
                 dbUrlBase = prop.getProperty("db.url");
                 dbName = prop.getProperty("db.name");
-                logger.debug("Загружены настройки подключения (url, name)");
-            } catch (Exception ex) {
-                logger.error("Ошибка загрузки config.properties", ex);
+                dbUser = prop.getProperty("db.user");         // <-- Читаем логин БД
+                dbPassword = prop.getProperty("db.password"); // <-- Читаем пароль БД
+                logger.info("Загружены настройки подключения к БД из config.properties");
+            } else {
+                logger.error("Файл config.properties не найден!");
                 Platform.exit();
             }
-        } else {
-            logger.error("Файл config.properties не найден!");
+        } catch (Exception ex) {
+            logger.error("Ошибка загрузки config.properties", ex);
             Platform.exit();
         }
     }
 
-    public static void initConnection(String user, String password) throws SQLException {
-        savedUser = user;
-        savedPassword = password;
+    public static void initSystemConnection() throws SQLException {
         String fullUrl = dbUrlBase + dbName;
-
-        logger.info("Тестовое подключение к {} пользователем {}", fullUrl, user);
-
-        // Просто проверяем, что логин/пароль верные, и сразу закрываем
-        try (Connection testConn = DriverManager.getConnection(fullUrl, user, password)) {
-            logger.info("Соединение успешно установлено и проверено");
+        logger.info("Попытка системного подключения к {}", fullUrl);
+        // Проверяем коннект один раз при старте
+        try (Connection testConn = DriverManager.getConnection(fullUrl, dbUser, dbPassword)) {
+            logger.info("Системное соединение с БД успешно установлено");
         }
     }
 
     public static Connection getConnection() throws SQLException {
-        if (savedUser == null || savedPassword == null) {
-            throw new SQLException("Соединение не инициализировано. Вызовите initConnection()");
+        if (dbUser == null || dbPassword == null) {
+            throw new SQLException("Учетные данные БД не загружены! Проверьте config.properties");
         }
-        // ВАЖНО: Выдаем НОВОЕ соединение каждый раз, чтобы try-with-resources мог безопасно его закрыть
-        return DriverManager.getConnection(dbUrlBase + dbName, savedUser, savedPassword);
+        return DriverManager.getConnection(dbUrlBase + dbName, dbUser, dbPassword);
     }
 
     public static void closeConnection() {
-        // Больше ничего не делаем вручную, соединения закрываются автоматически в DAO
-        logger.info("Очистка ресурсов БД завершена");
-        savedUser = null;
-        savedPassword = null;
+        logger.info("Работа с базой данных завершена");
     }
 }

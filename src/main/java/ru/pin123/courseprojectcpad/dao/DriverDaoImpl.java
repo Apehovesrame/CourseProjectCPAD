@@ -24,6 +24,10 @@ public class DriverDaoImpl {
                 driver.setMiddleName(rs.getString("middle_name"));
                 driver.setAge(rs.getInt("age"));
                 driver.setPassport(rs.getString("passport"));
+
+                // КЛЮЧЕВОЙ МОМЕНТ: Чтение массива байт (фото водителя)
+                driver.setDriverImage(rs.getBytes("driver_image"));
+
                 drivers.add(driver);
             }
         } catch (SQLException e) {
@@ -33,7 +37,7 @@ public class DriverDaoImpl {
     }
 
     public void save(Driver driver) {
-        String sql = "INSERT INTO drivers (last_name, first_name, middle_name, age, passport) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO drivers (last_name, first_name, middle_name, age, passport, driver_image) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, driver.getLastName());
@@ -41,6 +45,13 @@ public class DriverDaoImpl {
             pstmt.setString(3, driver.getMiddleName());
             pstmt.setInt(4, driver.getAge());
             pstmt.setString(5, driver.getPassport());
+
+            // КЛЮЧЕВОЙ МОМЕНТ: Запись фото
+            if (driver.getDriverImage() != null) {
+                pstmt.setBytes(6, driver.getDriverImage());
+            } else {
+                pstmt.setNull(6, Types.BINARY);
+            }
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при сохранении водителя", e);
@@ -48,7 +59,7 @@ public class DriverDaoImpl {
     }
 
     public void update(Driver driver) {
-        String sql = "UPDATE drivers SET last_name = ?, first_name = ?, middle_name = ?, age = ?, passport = ? WHERE driver_id = ?";
+        String sql = "UPDATE drivers SET last_name = ?, first_name = ?, middle_name = ?, age = ?, passport = ?, driver_image = ? WHERE driver_id = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, driver.getLastName());
@@ -56,7 +67,14 @@ public class DriverDaoImpl {
             pstmt.setString(3, driver.getMiddleName());
             pstmt.setInt(4, driver.getAge());
             pstmt.setString(5, driver.getPassport());
-            pstmt.setLong(6, driver.getDriverId());
+
+            // КЛЮЧЕВОЙ МОМЕНТ: Обновление фото
+            if (driver.getDriverImage() != null) {
+                pstmt.setBytes(6, driver.getDriverImage());
+            } else {
+                pstmt.setNull(6, Types.BINARY);
+            }
+            pstmt.setLong(7, driver.getDriverId());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка при обновлении водителя", e);

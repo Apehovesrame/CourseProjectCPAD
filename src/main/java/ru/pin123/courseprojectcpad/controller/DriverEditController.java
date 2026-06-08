@@ -9,7 +9,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Driver;
 
+import java.io.ByteArrayInputStream; // Для перевода байтов в картинку
 import java.io.File;
+import java.nio.file.Files;         // Для чтения файла в массив байт
 
 public class DriverEditController {
 
@@ -18,12 +20,14 @@ public class DriverEditController {
     @FXML private TextField tfMiddleName;
     @FXML private TextField tfAge;
     @FXML private TextField tfPassport;
-    @FXML private ImageView imgPreview; // <-- Добавили ImageView
+    @FXML private ImageView imgPreview;
 
     private Stage dialogStage;
     private Driver driver;
     private boolean isOkClicked = false;
-    private String photoPath = null; // <-- Добавили путь к фото
+
+    // ИСПРАВЛЕНО: Теперь храним фотографию как массив байт, а не путь к файлу
+    private byte[] driverImageBytes = null;
 
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
@@ -37,13 +41,13 @@ public class DriverEditController {
         if (driver.getAge() > 0) tfAge.setText(String.valueOf(driver.getAge()));
         if (driver.getPassport() != null) tfPassport.setText(driver.getPassport());
 
-        // Загрузка существующего фото при редактировании
-        if (driver.getPhotoPath() != null && !driver.getPhotoPath().isEmpty()) {
-            this.photoPath = driver.getPhotoPath();
-            File file = new File(photoPath);
-            if (file.exists()) {
-                imgPreview.setImage(new Image(file.toURI().toString()));
-            }
+        // ИСПРАВЛЕНО: Загрузка существующего фото из байтов
+        if (driver.getDriverImage() != null && driver.getDriverImage().length > 0) {
+            this.driverImageBytes = driver.getDriverImage();
+            ByteArrayInputStream bis = new ByteArrayInputStream(driverImageBytes);
+            imgPreview.setImage(new Image(bis));
+        } else {
+            imgPreview.setImage(null);
         }
     }
 
@@ -51,7 +55,6 @@ public class DriverEditController {
         return isOkClicked;
     }
 
-    // Метод выбора фотографии с ПК
     @FXML
     private void handleChoosePhoto() {
         FileChooser fileChooser = new FileChooser();
@@ -62,8 +65,18 @@ public class DriverEditController {
 
         File file = fileChooser.showOpenDialog(dialogStage);
         if (file != null) {
-            photoPath = file.getAbsolutePath();
-            imgPreview.setImage(new Image(file.toURI().toString()));
+            try {
+                // ИСПРАВЛЕНО: Читаем весь файл в массив байт
+                this.driverImageBytes = Files.readAllBytes(file.toPath());
+                imgPreview.setImage(new Image(file.toURI().toString()));
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.initOwner(dialogStage);
+                alert.setTitle("Ошибка чтения файла");
+                alert.setHeaderText("Не удалось загрузить изображение");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            }
         }
     }
 
@@ -75,7 +88,9 @@ public class DriverEditController {
             driver.setMiddleName(tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "");
             driver.setAge(Integer.parseInt(tfAge.getText().trim()));
             driver.setPassport(tfPassport.getText().trim());
-            driver.setPhotoPath(photoPath); // <-- Сохраняем путь к фото
+
+            // ИСПРАВЛЕНО: Сохраняем массив байт в модель водителя
+            driver.setDriverImage(driverImageBytes);
 
             isOkClicked = true;
             dialogStage.close();

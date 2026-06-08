@@ -3,14 +3,21 @@ package ru.pin123.courseprojectcpad.model;
 public class User {
     private Long userId;
     private String login;
+    private String passwordHash; // ДОБАВИЛИ ПОЛЕ ДЛЯ ХЕША
     private String lastName;
     private String firstName;
     private String middleName;
-
-    // ДОБАВЛЕНО: Поле для связи пользователя с его ролью (Кассир/Админ)
     private Role role;
 
     public User() {
+    }
+
+    // Дополнительный удобный геттер для полного имени (пригодится для вывода в UI)
+    public String getFullName() {
+        return String.format("%s %s %s",
+                lastName != null ? lastName : "",
+                firstName != null ? firstName : "",
+                middleName != null ? middleName : "").trim().replaceAll("\\s+", " ");
     }
 
     public Long getUserId() {
@@ -27,6 +34,14 @@ public class User {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public String getPasswordHash() { // ГЕТТЕР
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public String getLastName() {
@@ -53,7 +68,6 @@ public class User {
         this.middleName = middleName;
     }
 
-    // ДОБАВЛЕНО: Геттер и сеттер для роли
     public Role getRole() {
         return role;
     }

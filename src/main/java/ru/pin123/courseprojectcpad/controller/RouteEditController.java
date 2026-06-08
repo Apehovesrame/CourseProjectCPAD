@@ -43,7 +43,6 @@ public class RouteEditController {
             route.setRouteNumber(tfNumber.getText().trim());
             route.setDeparturePoint(tfFrom.getText().trim());
             route.setDestinationPoint(tfTo.getText().trim());
-            route.setDurationMinutes(Integer.parseInt(tfDuration.getText().trim()));
 
             int hours = tfHours.getText().isEmpty() ? 0 : Integer.parseInt(tfHours.getText().trim());
             int minutes = tfMinutes.getText().isEmpty() ? 0 : Integer.parseInt(tfMinutes.getText().trim());
@@ -66,15 +65,11 @@ public class RouteEditController {
         if (tfFrom.getText() == null || tfFrom.getText().trim().isEmpty()) errorMessage.append("Не указан пункт отправления!\n");
         if (tfTo.getText() == null || tfTo.getText().trim().isEmpty()) errorMessage.append("Не указан пункт назначения!\n");
 
-        if (tfDuration.getText() == null || tfDuration.getText().trim().isEmpty()) {
-            errorMessage.append("Не указано время в пути!\n");
-        } else {
-            try {
-                int duration = Integer.parseInt(tfDuration.getText().trim());
-                if (duration <= 0) errorMessage.append("Время в пути должно быть больше нуля!\n");
-            } catch (NumberFormatException e) {
-                errorMessage.append("Время в пути должно быть целым числом!\n");
-            }
+        boolean isHoursValid = !tfHours.getText().isEmpty() && tfHours.getText().matches("\\d+");
+        boolean isMinutesValid = !tfMinutes.getText().isEmpty() && tfMinutes.getText().matches("\\d+");
+
+        if (!isHoursValid && !isMinutesValid) {
+            errorMessage.append("Укажите время в пути (часы и/или минуты)!\n");
         }
 
         if (errorMessage.length() == 0) {

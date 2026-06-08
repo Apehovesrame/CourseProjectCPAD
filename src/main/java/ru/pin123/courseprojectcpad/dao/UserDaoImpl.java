@@ -1,25 +1,23 @@
 package ru.pin123.courseprojectcpad.dao;
 
 import ru.pin123.courseprojectcpad.DBHelper;
-import ru.pin123.courseprojectcpad.model.Role; // ИСПРАВЛЕНО: Теперь используется ваша модель
+import ru.pin123.courseprojectcpad.model.Role;
 import ru.pin123.courseprojectcpad.model.User;
-import ru.pin123.courseprojectcpad.util.HashHelper; // ИСПРАВЛЕНО: Добавлен утилитарный класс
+import ru.pin123.courseprojectcpad.util.HashHelper;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement; // ИСПРАВЛЕНО: Добавлен Statement
-import java.util.ArrayList; // ИСПРАВЛЕНО: Добавлен ArrayList
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class UserDaoImpl {
 
     public Optional<User> authenticate(String login, String passwordHash) {
-        String sql = "SELECT u.user_id, u.role_id, u.login, u.last_name, u.first_name, u.middle_name " +
+        // ИСПРАВЛЕНО: Добавили r.role_name в запрос
+        String sql = "SELECT u.user_id, u.role_id, u.login, u.last_name, u.first_name, u.middle_name, r.role_name " +
                 "FROM authorizations a " +
                 "JOIN users u ON a.login = u.login " +
+                "LEFT JOIN roles r ON u.role_id = r.role_id " +
                 "WHERE a.login = ? AND a.password_hash = ?";
 
         try (Connection conn = DBHelper.getConnection();
@@ -36,13 +34,19 @@ public class UserDaoImpl {
                     user.setLastName(rs.getString("last_name"));
                     user.setFirstName(rs.getString("first_name"));
                     user.setMiddleName(rs.getString("middle_name"));
+
+                    // ИСПРАВЛЕНО: Теперь роль корректно заполняется при входе!
+                    Role role = new Role();
+                    role.setRoleId(rs.getLong("role_id"));
+                    role.setRoleName(rs.getString("role_name"));
+                    user.setRole(role);
+
                     return Optional.of(user);
                 }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Ошибка базы данных при авторизации", e);
         }
-
         return Optional.empty();
     }
 
@@ -76,6 +80,7 @@ public class UserDaoImpl {
                 user.setLogin(rs.getString("login"));
                 user.setLastName(rs.getString("last_name"));
                 user.setFirstName(rs.getString("first_name"));
+                user.setMiddleName(rs.getString("middle_name")); // ИСПРАВЛЕНО: Считываем отчество
 
                 Role role = new Role();
                 role.setRoleId(rs.getLong("role_id"));
@@ -90,32 +95,31 @@ public class UserDaoImpl {
         return users;
     }
 
-    // ИСПРАВЛЕНО: Транзакция для вставки в 2 таблицы (authorizations и users)
     public void save(User user, String rawPassword) {
         String sqlAuth = "INSERT INTO authorizations (login, password_hash) VALUES (?, ?)";
-        String sqlUser = "INSERT INTO users (login, last_name, first_name, role_id) VALUES (?, ?, ?, ?)";
+        // ИСПРАВЛЕНО: Добавили middle_name в INSERT запроса
+        String sqlUser = "INSERT INTO users (login, last_name, first_name, middle_name, role_id) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBHelper.getConnection()) {
-            conn.setAutoCommit(false); // Открываем транзакцию
+            conn.setAutoCommit(false);
 
             try (PreparedStatement pstmtAuth = conn.prepareStatement(sqlAuth);
                  PreparedStatement pstmtUser = conn.prepareStatement(sqlUser)) {
 
-                // 1. Вставка логина и хеша
                 pstmtAuth.setString(1, user.getLogin());
                 pstmtAuth.setString(2, HashHelper.computeSha256Hash(rawPassword));
                 pstmtAuth.executeUpdate();
 
-                // 2. Вставка данных профиля
                 pstmtUser.setString(1, user.getLogin());
                 pstmtUser.setString(2, user.getLastName());
                 pstmtUser.setString(3, user.getFirstName());
-                pstmtUser.setLong(4, user.getRole().getRoleId());
+                pstmtUser.setString(4, user.getMiddleName()); // ИСПРАВЛЕНО: Передаем отчество
+                pstmtUser.setLong(5, user.getRole().getRoleId());
                 pstmtUser.executeUpdate();
 
-                conn.commit(); // Если обе вставки прошли без ошибок — сохраняем!
+                conn.commit();
             } catch (SQLException e) {
-                conn.rollback(); // Если ошибка (например, логин занят) — откатываем
+                conn.rollback();
                 throw new RuntimeException("Ошибка сохранения. Возможно, такой логин уже существует.", e);
             } finally {
                 conn.setAutoCommit(true);
@@ -125,7 +129,6 @@ public class UserDaoImpl {
         }
     }
 
-    // ИСПРАВЛЕНО: Удаляем профиль, а затем учетную запись для входа (каскадное удаление)
     public void delete(Long userId) {
         String sqlSelectLogin = "SELECT login FROM users WHERE user_id = ?";
         String sqlDeleteUser = "DELETE FROM users WHERE user_id = ?";
@@ -138,7 +141,6 @@ public class UserDaoImpl {
                  PreparedStatement pstmtUser = conn.prepareStatement(sqlDeleteUser);
                  PreparedStatement pstmtAuth = conn.prepareStatement(sqlDeleteAuth)) {
 
-                // 1. Сначала узнаем логин пользователя по его ID
                 pstmtSelect.setLong(1, userId);
                 String loginToDelete = null;
                 try (ResultSet rs = pstmtSelect.executeQuery()) {
@@ -147,7 +149,6 @@ public class UserDaoImpl {
                     }
                 }
 
-                // 2. Если пользователь найден, удаляем его из обеих таблиц
                 if (loginToDelete != null) {
                     pstmtUser.setLong(1, userId);
                     pstmtUser.executeUpdate();

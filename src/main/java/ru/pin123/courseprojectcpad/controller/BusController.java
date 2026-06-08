@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Bus;
 import ru.pin123.courseprojectcpad.service.BusService;
 
-import java.io.File;
+import java.io.ByteArrayInputStream; // Добавили импорт для работы с потоком байт
 import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -50,16 +50,14 @@ public class BusController {
         loadData(); // Загружаем данные из БД
     }
 
+    // КЛЮЧЕВОЙ МОМЕНТ: Изменили логику отображения картинки из byte[]
     private void showBusDetails(Bus bus) {
-        if (bus != null && bus.getPhotoPath() != null && !bus.getPhotoPath().isEmpty()) {
-            File file = new File(bus.getPhotoPath());
-            if (file.exists()) {
-                busImage.setImage(new Image(file.toURI().toString()));
-            } else {
-                busImage.setImage(null); // Если файл удален с диска
-            }
+        if (bus != null && bus.getBusImage() != null && bus.getBusImage().length > 0) {
+            // Оборачиваем массив байт во входной поток и передаем в JavaFX Image
+            ByteArrayInputStream bis = new ByteArrayInputStream(bus.getBusImage());
+            busImage.setImage(new Image(bis));
         } else {
-            busImage.setImage(null); // Очищаем картинку, если фото нет
+            busImage.setImage(null); // Очищаем картинку, если фото в базе нет
         }
     }
 

@@ -41,6 +41,8 @@
                 <Label text="%lbl.passenger" />
                 <TextField fx:id="fioField" prefHeight="39.0" prefWidth="395.0" promptText="%prompt.fio" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
                 <TextField fx:id="passportField" promptText="%prompt.passport" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
+
+                <TextField fx:id="birthYearField" promptText="Год рождения (напр. 1990)" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
             </VBox>
 
             <VBox alignment="TOP_CENTER" spacing="10.0">

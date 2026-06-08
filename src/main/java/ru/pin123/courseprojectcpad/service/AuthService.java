@@ -3,6 +3,7 @@ package ru.pin123.courseprojectcpad.service;
 import ru.pin123.courseprojectcpad.dao.UserDaoImpl;
 import ru.pin123.courseprojectcpad.model.Session;
 import ru.pin123.courseprojectcpad.model.User;
+import ru.pin123.courseprojectcpad.util.HashHelper;
 
 import java.util.Optional;
 
@@ -16,7 +17,7 @@ public class AuthService {
         }
 
         // 1. Хешируем введенный пароль
-        String hash = HashUtil.computeSha256Hash(rawPassword);
+        String hash = HashHelper.computeSha256Hash(rawPassword);
 
         // 2. Ищем в базе
         Optional<User> userOpt = userDao.authenticate(login, hash);

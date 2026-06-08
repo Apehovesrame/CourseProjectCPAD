@@ -6,10 +6,17 @@ public class Driver {
     private String firstName;
     private String middleName;
 
-    // Новые поля
     private int age;
     private String passport;
-    private String photoPath;
+    private byte[] driverImage;
+
+    public byte[] getDriverImage() {
+        return driverImage;
+    }
+
+    public void setDriverImage(byte[] driverImage) {
+        this.driverImage = driverImage;
+    }
 
     public Driver() {
     }
@@ -60,14 +67,6 @@ public class Driver {
 
     public void setPassport(String passport) {
         this.passport = passport;
-    }
-
-    public String getPhotoPath() {
-        return photoPath;
-    }
-
-    public void setPhotoPath(String photoPath) {
-        this.photoPath = photoPath;
     }
 
     // Переопределяем toString() для красивого отображения в списке выбора (например, при создании рейса)
