@@ -76,7 +76,7 @@ public class UserDaoImpl {
                 user.setLogin(rs.getString("login"));
                 user.setLastName(rs.getString("last_name"));
                 user.setFirstName(rs.getString("first_name"));
-                user.setMiddleName(rs.getString("middle_name")); // ИСПРАВЛЕНО: Считываем отчество
+                user.setMiddleName(rs.getString("middle_name"));
 
                 Role role = new Role();
                 role.setRoleId(rs.getLong("role_id"));
