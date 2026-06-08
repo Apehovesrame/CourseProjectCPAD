@@ -82,7 +82,7 @@ public class MainController {
 
     @FXML
     void onBusesClick(ActionEvent event) {
-        loadView("/ru/pin123/courseprojectcpad/view/buses-view.fxml");
+        loadView("/ru/pin123/courseprojectcpad/view/buses-table.fxml");
     }
 
     @FXML

@@ -21,27 +21,23 @@ public class MainApplication extends Application {
         logger.info("Приложение запущено");
 
         try {
-            // 1. Проверяем системное подключение к PostgreSQL при старте
-            DBHelper.initSystemConnection();
+            DBHelper.initSystemConnection(); // Подключаемся к БД как система
 
-            // 2. Загружаем окно авторизации из FXML
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
             FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("/ru/pin123/courseprojectcpad/view/login-view.fxml"), bundle);
 
             primaryStage.setScene(new Scene(fxmlLoader.load()));
-            primaryStage.setTitle(bundle.getString("app.title")); // Берет название "Система учета..." из properties
+            primaryStage.setTitle(bundle.getString("app.title"));
             primaryStage.setResizable(false);
             primaryStage.show();
-
         } catch (Exception e) {
-            logger.error("Критическая ошибка при запуске приложения", e);
+            logger.error("Критическая ошибка при запуске", e);
         }
     }
 
     @Override
     public void stop() throws Exception {
         DBHelper.closeConnection();
-        logger.info("Приложение завершило работу");
         super.stop();
     }
 
