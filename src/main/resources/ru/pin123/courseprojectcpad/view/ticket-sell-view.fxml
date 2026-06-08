@@ -79,13 +79,13 @@
 
                 <!-- ПАНЕЛЬ ПРОКРУТКИ -->
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="350.0" prefHeight="350.0" prefWidth="241.0" style="-fx-background: transparent; -fx-background-color: transparent;" vbarPolicy="AS_NEEDED">
-
-                    <GridPane fx:id="seatsGrid" alignment="CENTER" hgap="10.0" vgap="10.0">
-                        <children>
-                            <!-- Кнопки будут добавляться сюда динамически из Java-кода -->
-                        </children>
-                    </GridPane>
-
+                    <content>
+                        <GridPane fx:id="seatsGrid" alignment="CENTER" hgap="10.0" vgap="10.0">
+                            <children>
+                                <!-- Кнопки будут добавляться сюда динамически из Java-кода -->
+                            </children>
+                        </GridPane>
+                    </content>
                 </ScrollPane>
             </VBox>
         </HBox>

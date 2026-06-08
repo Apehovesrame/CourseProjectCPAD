@@ -1,38 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="350.0" prefWidth="420.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.BusEditController">
+<AnchorPane prefHeight="396.0" prefWidth="420.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.BusEditController">
     <children>
-        <GridPane layoutX="20.0" layoutY="20.0" prefHeight="260.0" prefWidth="380.0" vgap="15" hgap="10">
+        <GridPane hgap="10" layoutX="20.0" layoutY="20.0" prefHeight="260.0" prefWidth="380.0" vgap="15">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="260.0" minWidth="10.0" prefWidth="260.0" />
             </columnConstraints>
             <children>
                 <Label text="Марка/Модель:" GridPane.rowIndex="0" />
-                <TextField fx:id="tfModel" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Например: ПАЗ-3205" />
+                <TextField fx:id="tfModel" promptText="Например: ПАЗ-3205" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                 <Label text="Госномер:" GridPane.rowIndex="1" />
-                <TextField fx:id="tfLicensePlate" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="А123АА 33" />
+                <TextField fx:id="tfLicensePlate" promptText="А123АА 33" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                 <Label text="Вместимость:" GridPane.rowIndex="2" />
-                <TextField fx:id="tfSeatCapacity" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Количество мест" />
+                <TextField fx:id="tfSeatCapacity" promptText="Количество мест" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
                 <Label text="Фотография:" GridPane.rowIndex="3" GridPane.valignment="TOP" />
                 <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                    <Button text="Выбрать файл с ПК..." onAction="#handleChoosePhoto" style="-fx-cursor: hand;" />
-                    <ImageView fx:id="imgPreview" fitWidth="250" fitHeight="140" preserveRatio="true" />
+                    <Button onAction="#handleChoosePhoto" style="-fx-cursor: hand;" text="Выбрать файл с ПК..." />
+                    <ImageView fx:id="imgPreview" fitHeight="147.0" fitWidth="260.0" preserveRatio="true" />
                 </VBox>
             </children>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
         </GridPane>
 
-        <HBox layoutX="230.0" layoutY="300.0" spacing="10.0">
+        <HBox layoutX="229.0" layoutY="341.0" spacing="10.0">
             <children>
-                <Button onAction="#handleOk" text="Сохранить" prefWidth="85" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
-                <Button onAction="#handleCancel" text="Отмена" prefWidth="75" style="-fx-cursor: hand;" />
+                <Button onAction="#handleOk" prefWidth="85" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Сохранить" />
+                <Button onAction="#handleCancel" prefWidth="75" style="-fx-cursor: hand;" text="Отмена" />
             </children>
         </HBox>
     </children>

@@ -1,51 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="450.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.DriverEditController">
+<AnchorPane prefHeight="468.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.DriverEditController">
     <children>
-        <GridPane layoutX="20.0" layoutY="20.0" prefHeight="350.0" prefWidth="340.0" vgap="10" hgap="10">
+        <GridPane hgap="10" layoutX="20.0" layoutY="20.0" prefHeight="350.0" prefWidth="340.0" vgap="10">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.0" minWidth="10.0" prefWidth="80.0" />
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="240.0" minWidth="10.0" prefWidth="240.0" />
             </columnConstraints>
             <children>
                 <Label text="Фамилия:" GridPane.rowIndex="0" />
-                <TextField fx:id="tfLastName" GridPane.columnIndex="1" GridPane.rowIndex="0" promptText="Иванов" />
+                <TextField fx:id="tfLastName" promptText="Иванов" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
                 <Label text="Имя:" GridPane.rowIndex="1" />
-                <TextField fx:id="tfFirstName" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="Иван" />
+                <TextField fx:id="tfFirstName" promptText="Иван" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                 <Label text="Отчество:" GridPane.rowIndex="2" />
-                <TextField fx:id="tfMiddleName" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Иванович (необязательно)" />
+                <TextField fx:id="tfMiddleName" promptText="Иванович (необязательно)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
                 <Label text="Возраст:" GridPane.rowIndex="3" />
                 <TextField fx:id="tfAge" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                 <Label text="Паспорт:" GridPane.rowIndex="4" />
-                <TextField fx:id="tfPassport" GridPane.columnIndex="1" GridPane.rowIndex="4" promptText="Серия и номер" />
+                <TextField fx:id="tfPassport" promptText="Серия и номер" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
                 <!-- Блок с фото -->
                 <Label text="Фото:" GridPane.rowIndex="5" GridPane.valignment="TOP" />
                 <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
                     <!-- Кнопки в одну строку -->
                     <HBox spacing="10">
-                        <Button text="Выбрать файл..." onAction="#handleChoosePhoto"
-                                style="-fx-cursor: hand; -fx-background-color: #2196F3; -fx-text-fill: white;" />
-                        <Button text="Удалить фото" onAction="#handleRemovePhoto"
-                                style="-fx-cursor: hand; -fx-background-color: #D32F2F; -fx-text-fill: white;" />
+                        <Button onAction="#handleChoosePhoto" style="-fx-cursor: hand; -fx-background-color: #2196F3; -fx-text-fill: white;" text="Выбрать файл..." />
+                        <Button onAction="#handleRemovePhoto" style="-fx-cursor: hand; -fx-background-color: #D32F2F; -fx-text-fill: white;" text="Удалить фото" />
                     </HBox>
-                    <ImageView fx:id="imgPreview" fitWidth="150" fitHeight="120" preserveRatio="true" />
+                    <ImageView fx:id="imgPreview" fitHeight="163.0" fitWidth="179.0" preserveRatio="true" />
                 </VBox>
             </children>
+         <rowConstraints>
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+            <RowConstraints />
+         </rowConstraints>
         </GridPane>
 
-        <HBox layoutX="190.0" layoutY="400.0" spacing="10.0">
+        <HBox layoutX="190.0" layoutY="418.0" spacing="10.0">
             <children>
-                <Button onAction="#handleOk" text="Сохранить" prefWidth="80" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" />
-                <Button onAction="#handleCancel" text="Отмена" prefWidth="70" style="-fx-cursor: hand;" />
+                <Button onAction="#handleOk" prefWidth="80" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;" text="Сохранить" />
+                <Button onAction="#handleCancel" prefWidth="70" style="-fx-cursor: hand;" text="Отмена" />
             </children>
         </HBox>
     </children>

@@ -52,7 +52,7 @@ public class TicketingService {
             if (errorMessage.contains("capacity") || errorMessage.contains("место")) {
                 throw new RuntimeException("Извините, это место уже занято. Пожалуйста, выберите другое.", e);
             }
-            throw new RuntimeException("Произошла системная ошибка при оформлении билета.", e);
+            throw new RuntimeException("Системная ошибка БД: " + e.getMessage(), e);
         }
     }
 

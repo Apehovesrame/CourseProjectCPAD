@@ -79,6 +79,7 @@ public class DriverEditController {
             }
         }
     }
+
     @FXML
     private void handleRemovePhoto() {
         // 1. Обнуляем массив байтов, чтобы при сохранении в БД ушел NULL
@@ -139,5 +140,12 @@ public class DriverEditController {
             alert.showAndWait();
             return false;
         }
+    }
+    private boolean isFioValid(String fioPart) {
+        return fioPart != null && fioPart.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$");
+    }
+
+    private boolean isPassportValid(String passport) {
+        return passport != null && passport.matches("\\d{10}");
     }
 }

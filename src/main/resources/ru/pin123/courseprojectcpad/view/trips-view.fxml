@@ -8,9 +8,14 @@
                 <TableColumn fx:id="colRoute" text="Маршрут" prefWidth="150"/>
                 <TableColumn fx:id="colDeparture" text="Отправление" prefWidth="150"/>
                 <TableColumn fx:id="colArrival" text="Прибытие" prefWidth="150"/>
-                <TableColumn fx:id="colBus" text="Автобус" prefWidth="100"/>
+                <TableColumn fx:id="colBus" text="Автобус" prefWidth="150"/>
             </columns>
         </TableView>
-        <Button text="Создать рейс" onAction="#handleCreateTrip"/>
+
+        <HBox spacing="10">
+            <Button text="Создать рейс" onAction="#handleCreateTrip" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="Редактировать" onAction="#handleEditTrip" style="-fx-cursor: hand;"/>
+            <Button text="Удалить" onAction="#handleDeleteTrip" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
+        </HBox>
     </VBox>
 </AnchorPane>

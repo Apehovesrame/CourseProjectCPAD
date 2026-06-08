@@ -1,31 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<AnchorPane prefHeight="380.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.TripEditController">
+<AnchorPane prefHeight="450.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.TripEditController">
     <children>
         <VBox spacing="15" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
-            <Label text="Назначение нового рейса" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
-
+            <Label text="Назначение рейса" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
             <GridPane vgap="15" hgap="10">
                 <columnConstraints>
                     <ColumnConstraints prefWidth="100"/>
-                    <ColumnConstraints prefWidth="280"/>
+                    <ColumnConstraints prefWidth="300"/>
                 </columnConstraints>
                 <children>
                     <Label text="Маршрут:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                    <ComboBox fx:id="comboRoutes" prefWidth="280" promptText="Выберите маршрут..." GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
+                    <ComboBox fx:id="comboRoutes" prefWidth="300" promptText="Выберите маршрут..." GridPane.rowIndex="0" GridPane.columnIndex="1"/>
                     <Label text="Автобус:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                    <ComboBox fx:id="comboBuses" prefWidth="280" promptText="Выберите автобус..." GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
+                    <ComboBox fx:id="comboBuses" prefWidth="300" promptText="Выберите автобус..." GridPane.rowIndex="1" GridPane.columnIndex="1"/>
                     <Label text="Водители:" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
-                    <ListView fx:id="listDrivers" prefHeight="100" prefWidth="280" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    <ListView fx:id="listDrivers" prefHeight="100" prefWidth="300" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                    <Label text="Дата:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <DatePicker fx:id="dpDeparture" prefWidth="300" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                    <Label text="Время:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <TextField fx:id="tfTime" promptText="ЧЧ:ММ" prefWidth="300" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    <Label text="Прибытие:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblArrival" text="---" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
                 </children>
             </GridPane>
-
             <HBox spacing="10" alignment="CENTER_RIGHT">
-                <Button text="Сохранить рейс" onAction="#onSaveTripClick" prefHeight="35" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
-                <Button text="Отмена" onAction="#handleCancel" prefHeight="35" style="-fx-cursor: hand;"/>
+                <Button text="Сохранить" onAction="#onSaveTripClick" style="-fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+                <Button text="Отмена" onAction="#handleCancel"/>
             </HBox>
         </VBox>
     </children>

@@ -36,7 +36,7 @@ public class PassengersController implements Initializable {
         colLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         colFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         colMiddleName.setCellValueFactory(new PropertyValueFactory<>("middleName"));
-        colPassport.setCellValueFactory(new PropertyValueFactory<>("passport"));
+        colPassport.setCellValueFactory(new PropertyValueFactory<>("passportNumber"));
 
         passengerTable.setItems(passengerList);
         loadData();

@@ -11,7 +11,6 @@ public class RouteEditController {
     @FXML private TextField tfNumber;
     @FXML private TextField tfFrom;
     @FXML private TextField tfTo;
-    @FXML private TextField tfDuration;
     @FXML private TextField tfHours;
     @FXML private TextField tfMinutes;
 
@@ -28,7 +27,6 @@ public class RouteEditController {
         if (route.getRouteNumber() != null) tfNumber.setText(route.getRouteNumber());
         if (route.getDeparturePoint() != null) tfFrom.setText(route.getDeparturePoint());
         if (route.getDestinationPoint() != null) tfTo.setText(route.getDestinationPoint());
-        if (route.getDurationMinutes() > 0) tfDuration.setText(String.valueOf(route.getDurationMinutes()));
         if (route.getDurationMinutes() > 0) {tfHours.setText(String.valueOf(route.getDurationMinutes() / 60)); tfMinutes.setText(String.valueOf(route.getDurationMinutes() % 60));
         }
     }

@@ -67,38 +67,42 @@ public class TicketSellController implements Initializable {
     }
 
     private void onTripSelected(Trip trip) {
-        // Сбрасываем поля, если рейс не выбран
-        if (trip == null || trip.getRoute() == null) {
-            lblDeparturePoint.setText("—");
-            lblDestinationPoint.setText("—");
-            lblDuration.setText("—");
-            stopComboBox.getItems().clear();
-            costLabel.setText("0.00");
-            seatsGrid.getChildren().clear();
-            return;
+        try {
+            // Сбрасываем поля, если рейс не выбран
+            if (trip == null || trip.getRoute() == null) {
+                lblDeparturePoint.setText("—");
+                lblDestinationPoint.setText("—");
+                lblDuration.setText("—");
+                stopComboBox.getItems().clear();
+                costLabel.setText("0.00");
+                seatsGrid.getChildren().clear();
+                return;
+            }
+
+            // 1. Получаем данные маршрута и обновляем интерфейс
+            Route route = trip.getRoute();
+            lblDeparturePoint.setText(route.getDeparturePoint());
+            lblDestinationPoint.setText(route.getDestinationPoint());
+            lblDuration.setText(route.getFormattedDuration());
+
+            // 2. Загружаем реальные остановки из БД
+            List<Stop> allStops = stopDao.findAll();
+            List<StopItem> stopItems = new ArrayList<>();
+            BigDecimal basePrice = new BigDecimal("150.00"); // Базовая цена
+
+            for (int i = 0; i < allStops.size(); i++) {
+                BigDecimal price = basePrice.add(new BigDecimal(i * 100));
+                stopItems.add(new StopItem(allStops.get(i), price));
+            }
+            stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
+
+            // 3. Отрисовываем салон
+            drawBusSeats(trip);
+
+        } catch (Exception e) {
+            logger.error("Ошибка при выборе рейса", e);
+            showAlert(Alert.AlertType.ERROR, "Ошибка загрузки", "Не удалось загрузить данные рейса или остановок:\n" + e.getMessage());
         }
-
-        // 1. Получаем данные маршрута и обновляем интерфейс
-        Route route = trip.getRoute();
-        lblDeparturePoint.setText(route.getDeparturePoint());
-        lblDestinationPoint.setText(route.getDestinationPoint());
-
-        // В вашем классе Route есть удобный метод getFormattedDuration(), который возвращает строку вида "6 ч 0 мин"
-        lblDuration.setText(route.getFormattedDuration());
-
-        // 2. Загружаем реальные остановки из БД (ваш существующий код)
-        List<Stop> allStops = stopDao.findAll();
-        List<StopItem> stopItems = new ArrayList<>();
-        BigDecimal basePrice = new BigDecimal("150.00"); // Базовая цена
-
-        for (int i = 0; i < allStops.size(); i++) {
-            BigDecimal price = basePrice.add(new BigDecimal(i * 100));
-            stopItems.add(new StopItem(allStops.get(i), price));
-        }
-        stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
-
-        // 3. Отрисовываем салон (ваш существующий код)
-        drawBusSeats(trip);
     }
 
     private void drawBusSeats(Trip trip) {

@@ -60,35 +60,6 @@ public class TripsController implements Initializable {
         showTripEditDialog(newTrip);
     }
 
-    @FXML
-    public void handleEditTrip() {
-        Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
-        if (selectedTrip != null) {
-            showTripEditDialog(selectedTrip);
-        } else {
-            showAlert("Выберите рейс для редактирования!");
-        }
-    }
-
-    @FXML
-    public void handleDeleteTrip() {
-        Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
-        if (selectedTrip != null) {
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Подтверждение");
-            confirm.setHeaderText(null);
-            confirm.setContentText("Вы уверены, что хотите удалить этот рейс из расписания?");
-
-            Optional<ButtonType> result = confirm.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                tripDao.delete(selectedTrip.getTripId());
-                loadData();
-            }
-        } else {
-            showAlert("Выберите рейс для удаления!");
-        }
-    }
-
     private void showTripEditDialog(Trip trip) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/trip-edit-view.fxml"));
@@ -110,6 +81,39 @@ public class TripsController implements Initializable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleEditTrip() {
+        Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
+        if (selectedTrip != null) {
+            showTripEditDialog(selectedTrip);
+        } else {
+            showAlert("Выберите рейс в таблице для редактирования.");
+        }
+    }
+
+    @FXML
+    private void handleDeleteTrip() {
+        Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
+        if (selectedTrip != null) {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Подтверждение удаления");
+            confirm.setHeaderText("Удаление рейса");
+            confirm.setContentText("Вы уверены, что хотите удалить этот рейс? Проданные на него билеты сохранятся в истории.");
+
+            Optional<ButtonType> result = confirm.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                try {
+                    tripDao.delete(selectedTrip.getTripId());
+                    loadData(); // Обновляем таблицу
+                } catch (Exception e) {
+                    showAlert("Ошибка при удалении: " + e.getMessage());
+                }
+            }
+        } else {
+            showAlert("Выберите рейс в таблице для удаления.");
         }
     }
 

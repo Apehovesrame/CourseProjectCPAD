@@ -16,28 +16,31 @@ public class TicketDaoImpl implements TicketDao {
         String sql = PropertiesUtil.get("sql.ticket.sell");
 
         try (Connection conn = DBHelper.getConnection();
-             CallableStatement cstmt = conn.prepareCall(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // 1. Регистрируем первый параметр как выходной (это то, что вернет БД)
-            cstmt.registerOutParameter(1, Types.BIGINT);
+            // ИСПРАВЛЕНО: Преобразуем Long в int с помощью .intValue(), так как в БД тип колонок - integer
+            pstmt.setInt(1, ticket.getTrip().getTripId().intValue());
+            pstmt.setInt(2, ticket.getPassenger().getPassengerId().intValue());
 
-            // 2. Устанавливаем входные параметры (со 2 по 7 позицию)
-            cstmt.setLong(2, ticket.getTrip().getTripId());
-            cstmt.setLong(3, ticket.getPassenger().getPassengerId());
-            cstmt.setLong(4, ticket.getDestinationStop().getStopId());
-            cstmt.setLong(5, ticket.getSoldByUser().getUserId());
-            cstmt.setInt(6, ticket.getSeatNumber());
-            cstmt.setBigDecimal(7, ticket.getCost());
+            // Небольшая защита: если остановка не выбрана, отправляем NULL
+            if (ticket.getDestinationStop() != null && ticket.getDestinationStop().getStopId() != null) {
+                pstmt.setInt(3, ticket.getDestinationStop().getStopId().intValue());
+            } else {
+                pstmt.setNull(3, Types.INTEGER);
+            }
 
-            // 3. Выполняем функцию (и триггеры логирования/проверки мест сработают автоматически!)
-            cstmt.execute();
+            pstmt.setInt(4, ticket.getSoldByUser().getUserId().intValue());
+            pstmt.setInt(5, ticket.getSeatNumber());
+            pstmt.setBigDecimal(6, ticket.getCost());
 
-            // 4. Достаем сгенерированный ticket_id из первого параметра и кладем в объект
-            long generatedId = cstmt.getLong(1);
-            ticket.setTicketId(generatedId);
-
+            // Выполняем функцию и забираем сгенерированный ticket_id
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    ticket.setTicketId(rs.getLong(1));
+                }
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при вызове функции продажи билета: " + e.getMessage(), e);
+            throw new RuntimeException("Ошибка БД при продаже: " + e.getMessage(), e);
         }
     }
 

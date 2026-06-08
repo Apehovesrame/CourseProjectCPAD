@@ -25,8 +25,6 @@ public class RoutesController implements Initializable {
     @FXML private TableColumn<Route, String> colNumber;
     @FXML private TableColumn<Route, String> colFrom;
     @FXML private TableColumn<Route, String> colTo;
-
-    // ДОБАВЛЕНО: Объявление колонки для времени в пути
     @FXML private TableColumn<Route, String> colDuration;
 
     private final RouteDaoImpl routeDao = new RouteDaoImpl();
