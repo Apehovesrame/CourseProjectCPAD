@@ -37,6 +37,9 @@ public class TicketSellController implements Initializable {
     @FXML private TextField fioField;
     @FXML private TextField passportField;
     @FXML private GridPane seatsGrid;
+    @FXML private Label lblDeparturePoint;
+    @FXML private Label lblDestinationPoint;
+    @FXML private Label lblDuration;
 
     private Integer selectedSeatNumber = null;
     private Button selectedSeatButton = null;
@@ -64,25 +67,43 @@ public class TicketSellController implements Initializable {
     }
 
     private void onTripSelected(Trip trip) {
-        // Загружаем реальные остановки из БД
+        // Сбрасываем поля, если рейс не выбран
+        if (trip == null || trip.getRoute() == null) {
+            lblDeparturePoint.setText("—");
+            lblDestinationPoint.setText("—");
+            lblDuration.setText("—");
+            stopComboBox.getItems().clear();
+            costLabel.setText("0.00");
+            seatsGrid.getChildren().clear();
+            return;
+        }
+
+        // 1. Получаем данные маршрута и обновляем интерфейс
+        Route route = trip.getRoute();
+        lblDeparturePoint.setText(route.getDeparturePoint());
+        lblDestinationPoint.setText(route.getDestinationPoint());
+
+        // В вашем классе Route есть удобный метод getFormattedDuration(), который возвращает строку вида "6 ч 0 мин"
+        lblDuration.setText(route.getFormattedDuration());
+
+        // 2. Загружаем реальные остановки из БД (ваш существующий код)
         List<Stop> allStops = stopDao.findAll();
         List<StopItem> stopItems = new ArrayList<>();
+        BigDecimal basePrice = new BigDecimal("150.00"); // Базовая цена
 
-        // Для примера генерируем стоимость от 150 руб. с шагом в 100 руб. за каждую следующую остановку
-        BigDecimal basePrice = new BigDecimal("150.00");
         for (int i = 0; i < allStops.size(); i++) {
             BigDecimal price = basePrice.add(new BigDecimal(i * 100));
             stopItems.add(new StopItem(allStops.get(i), price));
         }
-
         stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
 
-        // Отрисовываем салон
+        // 3. Отрисовываем салон (ваш существующий код)
         drawBusSeats(trip);
     }
 
     private void drawBusSeats(Trip trip) {
         seatsGrid.getChildren().clear();
+        seatsGrid.getColumnConstraints().clear(); // Важно: очищаем старые настройки колонок
         selectedSeatNumber = null;
         selectedSeatButton = null;
 
@@ -93,27 +114,54 @@ public class TicketSellController implements Initializable {
 
         int capacity = trip.getBus().getSeatCapacity();
         List<Integer> occupiedSeats = ticketingService.getOccupiedSeats(trip.getTripId());
-        int columns = 4; // 4 кресла в ряду
+        int seatsPerRow = 4; // Всего мест в ряду (2 слева + 2 справа)
 
+        // 1. Настраиваем 5 колонок для GridPane (индексы: 0, 1, 2-проход, 3, 4)
+        for (int c = 0; c < 5; c++) {
+            // Используем полный путь к классу, чтобы не добавлять импорты вручную
+            javafx.scene.layout.ColumnConstraints cc = new javafx.scene.layout.ColumnConstraints();
+            if (c == 2) {
+                // Это колонка прохода
+                cc.setMinWidth(15);
+                cc.setPrefWidth(15);
+            } else {
+                // Это колонки для кресел
+                int buttonSize = 30;
+                cc.setMinWidth(buttonSize);
+                cc.setPrefWidth(buttonSize);
+                cc.setMaxWidth(buttonSize);
+            }
+            cc.setHalignment(javafx.geometry.HPos.CENTER);
+            seatsGrid.getColumnConstraints().add(cc);
+        }
+
+        // 2. Добавляем кнопки мест
         for (int i = 1; i <= capacity; i++) {
             Button seatBtn = new Button(String.valueOf(i));
-            seatBtn.setPrefSize(50, 50);
+            seatBtn.setMinSize(30, 30);
+            seatBtn.setPrefSize(30, 30);
+            seatBtn.setMaxSize(30, 30);
 
             if (occupiedSeats.contains(i)) {
-                // Занято (Красный)
                 seatBtn.setStyle("-fx-background-color: #ffcdd2; -fx-text-fill: #c62828; -fx-font-weight: bold;");
                 seatBtn.setDisable(true);
             } else {
-                // Свободно (Серый)
                 seatBtn.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;");
                 int currentSeat = i;
                 seatBtn.setOnAction(e -> handleSeatSelection(currentSeat, seatBtn));
             }
 
-            // Рассадка с проходом посередине
-            int row = (i - 1) / columns;
-            int col = (i - 1) % columns;
-            if (col >= 2) col++; // Проход
+            // Рассчитываем row и col
+            int row = (i - 1) / seatsPerRow;
+            int col = (i - 1) % seatsPerRow;
+
+            // Сдвигаем колонку, если это правая сторона (3-е и 4-е место в ряду)
+            if (col >= 2) {
+                col += 1; // Пропускаем колонку 2 (проход)
+            }
+
+            javafx.scene.layout.GridPane.setHgrow(seatBtn, javafx.scene.layout.Priority.NEVER);
+            javafx.scene.layout.GridPane.setVgrow(seatBtn, javafx.scene.layout.Priority.NEVER);
 
             seatsGrid.add(seatBtn, col, row);
         }

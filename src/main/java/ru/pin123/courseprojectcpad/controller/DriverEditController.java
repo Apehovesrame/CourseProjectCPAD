@@ -79,6 +79,14 @@ public class DriverEditController {
             }
         }
     }
+    @FXML
+    private void handleRemovePhoto() {
+        // 1. Обнуляем массив байтов, чтобы при сохранении в БД ушел NULL
+        this.driverImageBytes = null;
+
+        // 2. Очищаем картинку в интерфейсе
+        imgPreview.setImage(null);
+    }
 
     @FXML
     private void handleOk() {

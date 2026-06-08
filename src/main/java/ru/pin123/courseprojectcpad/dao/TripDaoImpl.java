@@ -157,6 +157,7 @@ public class TripDaoImpl implements TripDao {
                 route.setRouteNumber(rs.getString("route_number"));
                 route.setDeparturePoint(rs.getString("departure_point"));
                 route.setDestinationPoint(rs.getString("destination_point"));
+                route.setDurationMinutes(rs.getInt("duration_minutes"));
                 trip.setRoute(route);
 
                 // 2. Собираем Автобус (Критично для отрисовки мест!)
