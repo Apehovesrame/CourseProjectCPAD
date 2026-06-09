@@ -20,7 +20,6 @@ import java.util.ResourceBundle;
 
 public class LoginController {
 
-    // ИСПРАВЛЕНО: Создали логгер для текущего класса
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @FXML private TextField txtLogin;

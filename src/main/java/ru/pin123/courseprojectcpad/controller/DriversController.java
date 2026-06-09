@@ -28,8 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DriversController implements Initializable {
-
-    // ИСПРАВЛЕНО: Инициализировали статическую переменную логгера для текущего класса
     private static final Logger logger = LoggerFactory.getLogger(DriversController.class);
 
     @FXML private TableView<Driver> driverTable;
@@ -37,11 +35,9 @@ public class DriversController implements Initializable {
     @FXML private TableColumn<Driver, String> colFirstName;
     @FXML private TableColumn<Driver, String> colMiddleName;
 
-    // ВЕРНУЛИ КОЛОНКИ
     @FXML private TableColumn<Driver, Integer> colAge;
     @FXML private TableColumn<Driver, String> colPassport;
 
-    // ЭЛЕМЕНТЫ КАРТОЧКИ
     @FXML private ImageView imgDriverPhoto;
     @FXML private Label lblNoPhoto;
     @FXML private Label lblDriverName;
@@ -74,7 +70,6 @@ public class DriversController implements Initializable {
         }
     }
 
-    // МЕТОД ОБНОВЛЕНИЯ КРАСИВОЙ КАРТОЧКИ
     private void showDriverDetails(Driver driver) {
         if (driver != null) {
             lblDriverName.setText(driver.getLastName() + " " + driver.getFirstName());
@@ -82,10 +77,10 @@ public class DriversController implements Initializable {
             if (driver.getDriverImage() != null) {
                 ByteArrayInputStream bis = new ByteArrayInputStream(driver.getDriverImage());
                 imgDriverPhoto.setImage(new Image(bis));
-                lblNoPhoto.setVisible(false); // Прячем надпись "Нет фото"
+                lblNoPhoto.setVisible(false);
             } else {
                 imgDriverPhoto.setImage(null);
-                lblNoPhoto.setVisible(true); // Показываем заглушку
+                lblNoPhoto.setVisible(true);
             }
         } else {
             lblDriverName.setText("Выберите водителя");
@@ -100,7 +95,6 @@ public class DriversController implements Initializable {
         boolean okClicked = showDriverEditDialog(tempDriver);
         if (okClicked) {
             driverDao.save(tempDriver);
-            // ДОБАВЛЕНО ЛОГИРОВАНИЕ УСПЕШНОГО ДОБАВЛЕНИЯ (INFO)
             logger.info("Добавлен новый водитель: {} {} {} (Паспорт: {}).",
                     tempDriver.getLastName(), tempDriver.getFirstName(), tempDriver.getMiddleName(), tempDriver.getPassport());
             loadData();
@@ -114,7 +108,6 @@ public class DriversController implements Initializable {
             boolean okClicked = showDriverEditDialog(selectedDriver);
             if (okClicked) {
                 driverDao.update(selectedDriver);
-                // ДОБАВЛЕНО ЛОГИРОВАНИЕ ИЗМЕНЕНИЯ ДАННЫХ (INFO)
                 logger.info("Изменены анкетные данные водителя с ID [{}]: {} {}.",
                         selectedDriver.getDriverId(), selectedDriver.getLastName(), selectedDriver.getFirstName());
                 loadData();
@@ -132,13 +125,11 @@ public class DriversController implements Initializable {
         if (selectedDriver != null) {
             try {
                 driverDao.delete(selectedDriver.getDriverId());
-                // ДОБАВЛЕНО ОПАСНОЕ ЛОГИРОВАНИЕ УДАЛЕНИЯ (WARN)
                 logger.warn("Из базы данных удален водитель: {} {} (ID: {}, Паспорт: {}).",
                         selectedDriver.getLastName(), selectedDriver.getFirstName(), selectedDriver.getDriverId(), selectedDriver.getPassport());
                 loadData();
                 showDriverDetails(null); // Очищаем карточку
             } catch (RuntimeException e) {
-                // ДОБАВЛЕНО ЛОГИРОВАНИЕ ОШИБКИ УДАЛЕНИЯ СВЯЗАННОЙ СУЩНОСТИ (ERROR)
                 logger.error("Не удалось удалить водителя с ID [{}] из-за ограничений внешнего ключа в БД.", selectedDriver.getDriverId(), e);
                 showAlert("Невозможно удалить водителя: " + e.getMessage());
             }
@@ -165,7 +156,6 @@ public class DriversController implements Initializable {
             dialogStage.showAndWait();
             return controller.isOkClicked();
         } catch (IOException e) {
-            // ИСПРАВЛЕНО: Заменили немой printStackTrace() на полноценную фиксацию ошибки в логах
             logger.error("Критическая ошибка ввода-вывода интерфейса при загрузке fxml-формы driver-edit-view.fxml", e);
             return false;
         }
