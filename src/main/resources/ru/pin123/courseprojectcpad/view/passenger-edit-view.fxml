@@ -16,7 +16,7 @@
                 <TextField fx:id="tfFirstName" GridPane.columnIndex="1" GridPane.rowIndex="1" promptText="Иван" />
 
                 <Label text="Отчество:" GridPane.rowIndex="2" />
-                <TextField fx:id="tfMiddleName" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Иванович (необязательно)" />
+                <TextField fx:id="tfMiddleName" GridPane.columnIndex="1" GridPane.rowIndex="2" promptText="Иванович" />
 
                 <Label text="Паспорт:" GridPane.rowIndex="3" />
                 <TextField fx:id="tfPassport" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Серия и номер" />

@@ -1,5 +1,7 @@
 package ru.pin123.courseprojectcpad.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.pin123.courseprojectcpad.DBHelper;
 import ru.pin123.courseprojectcpad.model.Passenger;
 import ru.pin123.courseprojectcpad.PropertiesUtil;
@@ -9,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PassengerDaoImpl {
-
+    private static final Logger logger = LoggerFactory.getLogger(PassengerDaoImpl.class);
     public List<Passenger> findAll() {
         List<Passenger> passengers = new ArrayList<>();
         String sql = PropertiesUtil.get("sql.passenger.find_all");
@@ -76,50 +78,77 @@ public class PassengerDaoImpl {
     }
 
     public Passenger getOrCreate(String lastName, String firstName, String middleName, String passport, int birthYear) {
-        String findSql = PropertiesUtil.get("sql.passenger.find_by_passport");
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement findStmt = conn.prepareStatement(findSql)) {
+        // 1. ИЩЕМ ПАССАЖИРА ПО ПАСПОРТУ
+        String selectSql = PropertiesUtil.get("sql.passenger.find_by_passport");
 
-            findStmt.setString(1, passport);
-            try (ResultSet rs = findStmt.executeQuery()) {
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectSql)) {
+
+            pstmt.setString(1, passport);
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
+                    // ПАССАЖИР НАЙДЕН!
+                    // Проверяем, совпадают ли ФИО (без учета регистра)
+                    String dbLastName = rs.getString("last_name");
+                    String dbFirstName = rs.getString("first_name");
+
+                    if (!dbLastName.equalsIgnoreCase(lastName) || !dbFirstName.equalsIgnoreCase(firstName)) {
+                        // РЕШЕНИЕ ПРОБЛЕМЫ №2: Блокируем продажу, если паспорт чужой
+                        logger.warn("Попытка оформления на чужой паспорт! Введено: {} {}, В базе: {} {} (Паспорт: {})",
+                                lastName, firstName, dbLastName, dbFirstName, passport);
+                        throw new RuntimeException("Этот паспорт (" + passport + ") уже зарегистрирован на другого пассажира: " + dbLastName + " " + dbFirstName);
+                    }
+
+                    // Если ФИО совпали, возвращаем пассажира из базы
                     Passenger p = new Passenger();
                     p.setPassengerId(rs.getLong("passenger_id"));
-                    p.setLastName(rs.getString("last_name"));
-                    p.setFirstName(rs.getString("first_name"));
+                    p.setLastName(dbLastName);
+                    p.setFirstName(dbFirstName);
                     p.setMiddleName(rs.getString("middle_name"));
                     p.setPassportNumber(rs.getString("passport_number"));
                     p.setBirthYear(rs.getInt("birth_year"));
                     return p;
                 }
             }
+        } catch (SQLException e) {
+            logger.error("Ошибка при поиске пассажира по паспорту", e);
+            throw new RuntimeException("Ошибка БД при проверке паспорта", e);
+        }
 
-            Passenger newPassenger = new Passenger();
-            newPassenger.setLastName(lastName);
-            newPassenger.setFirstName(firstName);
-            newPassenger.setMiddleName(middleName);
-            newPassenger.setPassportNumber(passport);
-            newPassenger.setBirthYear(birthYear);
+        // 2. ЕСЛИ НЕ НАЙДЕН — СОЗДАЕМ НОВОГО И ЗАПИСЫВАЕМ В БД (РЕШЕНИЕ ПРОБЛЕМЫ №1)
+        String insertSql = PropertiesUtil.get("sql.passenger.insert");
 
-            String insertSql = PropertiesUtil.get("sql.passenger.insert");
-            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
-                insertStmt.setString(1, lastName);
-                insertStmt.setString(2, firstName);
-                insertStmt.setString(3, middleName);
-                insertStmt.setString(4, passport);
-                insertStmt.setInt(5, birthYear);
-                insertStmt.executeUpdate();
+        // Обязательно указываем Statement.RETURN_GENERATED_KEYS, чтобы получить ID созданного пассажира
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
 
-                try (ResultSet generatedKeys = insertStmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        newPassenger.setPassengerId(generatedKeys.getLong(1));
-                    }
+            pstmt.setString(1, lastName);
+            pstmt.setString(2, firstName);
+            pstmt.setString(3, middleName);
+            pstmt.setString(4, passport);
+            pstmt.setInt(5, birthYear);
+            pstmt.executeUpdate();
+
+            // Достаем сгенерированный базой данных ID
+            try (ResultSet rsKeys = pstmt.getGeneratedKeys()) {
+                if (rsKeys.next()) {
+                    Passenger p = new Passenger();
+                    p.setPassengerId(rsKeys.getLong(1)); // Сохраняем реальный ID из базы!
+                    p.setLastName(lastName);
+                    p.setFirstName(firstName);
+                    p.setMiddleName(middleName);
+                    p.setPassportNumber(passport);
+                    p.setBirthYear(birthYear);
+
+                    logger.info("В базу данных успешно добавлен новый пассажир: {} {} (ID: {})", lastName, firstName, p.getPassengerId());
+                    return p;
+                } else {
+                    throw new RuntimeException("Сбой БД: не удалось получить ID нового пассажира.");
                 }
             }
-            return newPassenger;
-
         } catch (SQLException e) {
-            throw new RuntimeException("Ошибка при поиске/создании пассажира", e);
+            logger.error("Ошибка при создании нового пассажира", e);
+            throw new RuntimeException("Ошибка БД при сохранении нового пассажира", e);
         }
     }
 }
