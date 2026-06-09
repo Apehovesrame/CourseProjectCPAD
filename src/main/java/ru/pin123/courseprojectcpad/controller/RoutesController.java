@@ -31,34 +31,25 @@ import org.slf4j.LoggerFactory;
  */
 public class RoutesController implements Initializable {
 
-    /** Логгер для фиксации событий управления маршрутами. */
     private static final Logger logger = LoggerFactory.getLogger(RoutesController.class);
 
-    /** Таблица для отображения списка маршрутов. */
     @FXML private TableView<Route> routeTable;
-    /** Колонка с номером маршрута. */
     @FXML private TableColumn<Route, String> colNumber;
-    /** Колонка с пунктом отправления. */
     @FXML private TableColumn<Route, String> colFrom;
-    /** Колонка с пунктом назначения. */
     @FXML private TableColumn<Route, String> colTo;
-    /** Колонка с длительностью маршрута (в формате "чч ч мм мин"). */
     @FXML private TableColumn<Route, String> colDuration;
 
-    /** DAO-объект для работы с базой данных маршрутов. */
+    // Внедряем файл локализации
+    @FXML private ResourceBundle resources;
+
     private final RouteDaoImpl routeDao = new RouteDaoImpl();
-    /** Наблюдаемый список маршрутов для привязки к таблице. */
     private final ObservableList<Route> routeList = FXCollections.observableArrayList();
 
-    /**
-     * Инициализирует контроллер после загрузки FXML-файла.
-     * Настраивает привязку данных для колонок таблицы и загружает данные из БД.
-     *
-     * @param location  URL-адрес для разрешения относительных путей, или null.
-     * @param resources Ресурсы для локализации, или null.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Сохраняем внедренный JavaFX бандл ресурсов
+        this.resources = resources;
+
         colNumber.setCellValueFactory(new PropertyValueFactory<>("routeNumber"));
         colFrom.setCellValueFactory(new PropertyValueFactory<>("departurePoint"));
         colTo.setCellValueFactory(new PropertyValueFactory<>("destinationPoint"));
@@ -68,10 +59,6 @@ public class RoutesController implements Initializable {
         loadData();
     }
 
-    /**
-     * Загружает список всех маршрутов из базы данных и обновляет таблицу.
-     * В случае ошибки выводит сообщение в лог.
-     */
     private void loadData() {
         try {
             routeList.clear();
@@ -82,11 +69,6 @@ public class RoutesController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Добавить".
-     * Открывает диалоговое окно для ввода данных нового маршрута.
-     * Если пользователь подтвердил ввод, сохраняет новый маршрут в БД и обновляет таблицу.
-     */
     @FXML
     private void handleAdd() {
         Route tempRoute = new Route();
@@ -101,11 +83,6 @@ public class RoutesController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Редактировать".
-     * Открывает диалоговое окно для изменения данных выбранного маршрута.
-     * Если маршрут не выбран, показывает предупреждение.
-     */
     @FXML
     private void handleEdit() {
         Route selectedRoute = routeTable.getSelectionModel().getSelectedItem();
@@ -122,16 +99,11 @@ public class RoutesController implements Initializable {
             }
         } else {
             logger.warn("Попытка редактирования: действие отменено, маршрут не выбран в таблице.");
-            showAlert("Выберите маршрут в таблице для редактирования.");
+            // ИСПРАВЛЕНО: Локализация предупреждения
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Удалить".
-     * Удаляет выбранный маршрут из базы данных.
-     * Если маршрут не выбран, показывает предупреждение.
-     * Обрабатывает исключения, связанные с ограничениями внешних ключей в БД.
-     */
     @FXML
     private void handleDelete() {
         Route selectedRoute = routeTable.getSelectionModel().getSelectedItem();
@@ -144,28 +116,26 @@ public class RoutesController implements Initializable {
                 loadData();
             } catch (RuntimeException e) {
                 logger.error("Не удалось удалить маршрут с ID [{}] из-за ограничений внешнего ключа в БД.", selectedRoute.getRouteId(), e);
-                showAlert("Невозможно удалить маршрут: " + e.getMessage());
+                // ИСПРАВЛЕНО: Локализация ошибки удаления
+                showAlert(resources.getString("routes.delete_error") + ": " + e.getMessage());
             }
         } else {
             logger.warn("Попытка удаления: действие отменено, маршрут не выбран в таблице.");
-            showAlert("Выберите маршрут в таблице для удаления.");
+            // ИСПРАВЛЕНО: Локализация предупреждения
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Открывает модальное диалоговое окно для создания или редактирования данных маршрута.
-     *
-     * @param route объект маршрута с данными для отображения в диалоге (пустой для создания нового).
-     * @return true, если пользователь нажал OK и сохранил изменения, false в противном случае.
-     */
     private boolean showRouteEditDialog(Route route) {
         try {
             logger.debug("Загрузка FXML-формы route-edit-view.fxml для редактирования маршрута.");
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/route-edit-view.fxml"));
+            // ИСПРАВЛЕНО: Пробрасываем resources в загрузчик окна
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/route-edit-view.fxml"), resources);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Редактирование маршрута");
+            // ИСПРАВЛЕНО: Берем заголовок из ресурсов
+            dialogStage.setTitle(resources.getString("routes.edit.title"));
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.setScene(new Scene(page));
 
@@ -181,14 +151,10 @@ public class RoutesController implements Initializable {
         }
     }
 
-    /**
-     * Отображает модальное всплывающее окно с предупреждением для пользователя.
-     *
-     * @param content текстовое содержание предупреждения.
-     */
     private void showAlert(String content) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Внимание");
+        // ИСПРАВЛЕНО: Заголовок алерта
+        alert.setTitle(resources.getString("alert.warning.title"));
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();

@@ -26,49 +26,32 @@ import java.util.ResourceBundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Контроллер для управления списком рейсов в JavaFX приложении.
- * Отвечает за отображение таблицы рейсов с форматированными датами,
- * а также за выполнение операций CRUD (создание, чтение, обновление, удаление)
- * через модальные диалоговые окна. Взаимодействует с базой данных через {@link TripDaoImpl}.
- */
 public class TripsController implements Initializable {
 
-    /** Логгер для фиксации событий управления рейсами. */
     private static final Logger logger = LoggerFactory.getLogger(TripsController.class);
 
-    /** Таблица для отображения списка рейсов. */
     @FXML private TableView<Trip> tripTable;
-    /** Колонка с информацией о маршруте. */
     @FXML private TableColumn<Trip, String> colRoute;
-    /** Колонка с датой и временем отправления. */
     @FXML private TableColumn<Trip, String> colDeparture;
-    /** Колонка с датой и временем прибытия. */
     @FXML private TableColumn<Trip, String> colArrival;
-    /** Колонка с информацией об автобусе. */
     @FXML private TableColumn<Trip, String> colBus;
 
-    /** DAO-объект для работы с базой данных рейсов. */
+    // Внедряем ресурсы локализации
+    @FXML private ResourceBundle resources;
+
     private final TripDaoImpl tripDao = new TripDaoImpl();
-    /** Наблюдаемый список рейсов для привязки к таблице. */
     private final ObservableList<Trip> tripList = FXCollections.observableArrayList();
 
-    /**
-     * Инициализирует контроллер после загрузки FXML-файла.
-     * Настраивает привязку данных для колонок таблицы (включая форматирование дат),
-     * и загружает данные из БД.
-     *
-     * @param location  URL-адрес для разрешения относительных путей, или null.
-     * @param resources Ресурсы для локализации, или null.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Сохраняем внедренный бандл
+        this.resources = resources;
+
         logger.info("Инициализация контроллера рейсов. Настройка колонок таблицы.");
 
         colRoute.setCellValueFactory(new PropertyValueFactory<>("route"));
         colBus.setCellValueFactory(new PropertyValueFactory<>("bus"));
 
-        // Красивое форматирование дат в таблице
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
         colDeparture.setCellValueFactory(cellData ->
                 new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureDatetime().format(formatter)));
@@ -79,10 +62,6 @@ public class TripsController implements Initializable {
         loadData();
     }
 
-    /**
-     * Загружает список всех рейсов из базы данных и обновляет таблицу.
-     * В случае ошибки выводит сообщение в лог.
-     */
     private void loadData() {
         try {
             tripList.clear();
@@ -93,10 +72,6 @@ public class TripsController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Создать рейс".
-     * Открывает диалоговое окно для ввода данных нового рейса.
-     */
     @FXML
     public void handleCreateTrip() {
         logger.debug("Открытие диалога для назначения нового рейса.");
@@ -104,31 +79,29 @@ public class TripsController implements Initializable {
         showTripEditDialog(newTrip);
     }
 
-    /**
-     * Открывает модальное диалоговое окно для создания или редактирования данных рейса.
-     * После успешного сохранения обновляет таблицу.
-     *
-     * @param trip объект рейса с данными для отображения в диалоге (пустой для создания нового).
-     */
     private void showTripEditDialog(Trip trip) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/trip-edit-view.fxml"));
+            // ИСПРАВЛЕНО: Пробрасываем resources в окно редактирования
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/trip-edit-view.fxml"), resources);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle(trip.getTripId() == null ? "Назначение нового рейса" : "Редактирование рейса");
+            // ИСПРАВЛЕНО: Динамический локализованный заголовок окна
+            String titleKey = trip.getTripId() == null ? "trips.edit.title_assign" : "trips.edit.title_edit";
+            dialogStage.setTitle(resources.getString(titleKey));
+
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.setScene(new Scene(page));
 
             TripEditController controller = loader.getController();
             controller.setDialogStage(dialogStage);
-            controller.setTrip(trip); // Передаем рейс!
+            controller.setTrip(trip);
 
             dialogStage.showAndWait();
 
             if (controller.isOkClicked()) {
                 logger.info("Данные рейса успешно сохранены через диалоговое окно. Обновление таблицы.");
-                loadData(); // Обновляем таблицу, если нажали "Сохранить"
+                loadData();
             } else {
                 logger.debug("Диалоговое окно рейса закрыто без сохранения изменений.");
             }
@@ -137,11 +110,6 @@ public class TripsController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Редактировать".
-     * Открывает диалоговое окно для изменения данных выбранного рейса.
-     * Если рейс не выбран, показывает предупреждение.
-     */
     @FXML
     private void handleEditTrip() {
         Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
@@ -150,49 +118,47 @@ public class TripsController implements Initializable {
             showTripEditDialog(selectedTrip);
         } else {
             logger.warn("Попытка редактирования: действие отменено, рейс не выбран в таблице.");
-            showAlert("Выберите рейс в таблице для редактирования.");
+            // ИСПРАВЛЕНО: Локализация предупреждения
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки "Удалить".
-     * Запрашивает подтверждение пользователя и удаляет выбранный рейс из базы данных.
-     * Если рейс не выбран, показывает предупреждение.
-     */
     @FXML
     private void handleDeleteTrip() {
         Trip selectedTrip = tripTable.getSelectionModel().getSelectedItem();
         if (selectedTrip != null) {
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Подтверждение удаления");
-            confirm.setHeaderText("Удаление рейса");
-            confirm.setContentText("Вы уверены, что хотите удалить этот рейс? Проданные на него билеты сохранятся в истории.");
+            // ИСПРАВЛЕНО: Локализация окна подтверждения удаления
+            confirm.setTitle(resources.getString("alert.confirm.title"));
+            confirm.setHeaderText(resources.getString("trips.delete.header"));
+            confirm.setContentText(resources.getString("trips.delete.content"));
 
             Optional<ButtonType> result = confirm.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
                     tripDao.delete(selectedTrip.getTripId());
                     logger.info("Из базы данных успешно удален рейс ID [{}].", selectedTrip.getTripId());
-                    loadData(); // Обновляем таблицу
+                    loadData();
                 } catch (Exception e) {
                     logger.error("Ошибка при удалении рейса ID [{}] из базы данных.", selectedTrip.getTripId(), e);
-                    showAlert("Ошибка при удалении: " + e.getMessage());
+                    // ИСПРАВЛЕНО: Локализация ошибки
+                    showAlert(resources.getString("alert.error.title") + ": " + e.getMessage());
                 }
             } else {
                 logger.debug("Удаление рейса ID [{}] отменено пользователем.", selectedTrip.getTripId());
             }
         } else {
             logger.warn("Попытка удаления: действие отменено, рейс не выбран в таблице.");
-            showAlert("Выберите рейс в таблице для удаления.");
+            // ИСПРАВЛЕНО: Локализация предупреждения
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Отображает модальное всплывающее окно с предупреждением для пользователя.
-     *
-     * @param content текстовое содержание предупреждения.
-     */
     private void showAlert(String content) {
-        new Alert(Alert.AlertType.WARNING, content).showAndWait();
+        // ИСПРАВЛЕНО: Добавлен локализованный заголовок для предупреждений
+        Alert alert = new Alert(Alert.AlertType.WARNING, content);
+        alert.setTitle(resources.getString("alert.warning.title"));
+        alert.setHeaderText(null);
+        alert.showAndWait();
     }
 }

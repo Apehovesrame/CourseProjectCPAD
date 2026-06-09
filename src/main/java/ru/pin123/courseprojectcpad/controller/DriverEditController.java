@@ -1,5 +1,6 @@
 package ru.pin123.courseprojectcpad.controller;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
@@ -18,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Контроллер модального диалогового окна для создания и редактирования данных водителя.
- * Отвечает за валидацию анкетных данных, обработку загрузки изображений (конвертация в byte[])
- * и синхронизацию состояния объекта модели с интерфейсом.
+ * Отвечает за валидацию анкетных данных, обработку загрузки изображений (конвертация в byte[]),
+ * применение маски для паспортных данных и синхронизацию состояния объекта модели с интерфейсом.
  */
 public class DriverEditController {
 
@@ -39,6 +40,16 @@ public class DriverEditController {
 
     /** Буферный массив байт для временного хранения изображения водителя. */
     private byte[] driverImageBytes = null;
+
+    /**
+     * Инициализирует контроллер после загрузки FXML-файла.
+     * Настраивает автоматическую маску ввода для поля паспортных данных.
+     */
+    @FXML
+    public void initialize() {
+        logger.debug("Инициализация формы редактирования водителя. Настройка маски для паспорта.");
+        setupPassportField(tfPassport);
+    }
 
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
@@ -133,6 +144,32 @@ public class DriverEditController {
     }
 
     /**
+     * Настраивает автоматическую маску ввода для поля паспортных данных.
+     * Форматирует ввод в вид "0000 000000".
+     */
+    private void setupPassportField(TextField textField) {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null || newValue.isEmpty()) return;
+
+            String digits = newValue.replaceAll("[^\\d]", "");
+
+            if (digits.length() > 10) {
+                digits = digits.substring(0, 10);
+            }
+
+            StringBuilder formatted = new StringBuilder(digits);
+            if (formatted.length() > 4) {
+                formatted.insert(4, " ");
+            }
+
+            if (!newValue.equals(formatted.toString())) {
+                textField.setText(formatted.toString());
+                Platform.runLater(textField::end);
+            }
+        });
+    }
+
+    /**
      * Проверяет корректность заполнения всех полей формы.
      * @return true, если данные валидны, иначе false.
      */
@@ -143,8 +180,10 @@ public class DriverEditController {
             errorMessage.append("Фамилия введена неверно (кириллица, заглавная буква)!\n");
         if (tfFirstName.getText() == null || tfFirstName.getText().trim().isEmpty() || !isFioValid(tfFirstName.getText().trim()))
             errorMessage.append("Имя введено неверно!\n");
+
+        // Обновленная ошибка: учитываем пробел
         if (tfPassport.getText() == null || !isPassportValid(tfPassport.getText().trim()))
-            errorMessage.append("Паспорт должен содержать 10 цифр!\n");
+            errorMessage.append("Паспорт должен содержать ровно 10 цифр (формат: 1234 567890)!\n");
 
         if (tfAge.getText() == null || tfAge.getText().trim().isEmpty()) {
             errorMessage.append("Не указан возраст!\n");
@@ -175,7 +214,10 @@ public class DriverEditController {
         return fioPart != null && fioPart.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$");
     }
 
+    /**
+     * Валидирует формат паспортных данных с учетом маски (4 цифры, пробел, 6 цифр).
+     */
     private boolean isPassportValid(String passport) {
-        return passport != null && passport.matches("\\d{10}");
+        return passport != null && passport.matches("^\\d{4} \\d{6}$");
     }
 }

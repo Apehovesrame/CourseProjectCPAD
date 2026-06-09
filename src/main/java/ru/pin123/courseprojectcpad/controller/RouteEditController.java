@@ -6,6 +6,8 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Route;
 
+import java.util.ResourceBundle;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,41 +18,25 @@ import org.slf4j.LoggerFactory;
  */
 public class RouteEditController {
 
-    /** Логгер для фиксации событий редактирования маршрута. */
     private static final Logger logger = LoggerFactory.getLogger(RouteEditController.class);
 
-    /** Поле ввода номера маршрута. */
     @FXML private TextField tfNumber;
-    /** Поле ввода пункта отправления. */
     @FXML private TextField tfFrom;
-    /** Поле ввода пункта назначения. */
     @FXML private TextField tfTo;
-    /** Поле ввода количества часов в пути. */
     @FXML private TextField tfHours;
-    /** Поле ввода количества минут в пути. */
     @FXML private TextField tfMinutes;
 
-    /** Ссылка на модальное окно диалога. */
+    // Внедряем ресурсы локализации
+    @FXML private ResourceBundle resources;
+
     private Stage dialogStage;
-    /** Объект маршрута, данные которого редактируются. */
     private Route route;
-    /** Флаг, указывающий на то, что пользователь подтвердил ввод данных (нажал ОК). */
     private boolean isOkClicked = false;
 
-    /**
-     * Устанавливает ссылку на модальное окно диалога.
-     * @param dialogStage объект Stage для управления окном.
-     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
-    /**
-     * Инициализирует форму данными выбранного маршрута.
-     * Конвертирует общую длительность в минутах в часы и минуты для отображения.
-     *
-     * @param route объект Route для редактирования.
-     */
     public void setRoute(Route route) {
         this.route = route;
         if (route.getRouteNumber() != null) tfNumber.setText(route.getRouteNumber());
@@ -66,18 +52,10 @@ public class RouteEditController {
                 route.getRouteNumber(), route.getDeparturePoint(), route.getDestinationPoint());
     }
 
-    /**
-     * Возвращает статус подтверждения данных пользователем.
-     * @return true, если пользователь нажал кнопку ОК, иначе false.
-     */
     public boolean isOkClicked() {
         return isOkClicked;
     }
 
-    /**
-     * Обрабатывает нажатие кнопки ОК. Валидирует введенные данные
-     * и сохраняет их в объект модели, после чего закрывает диалоговое окно.
-     */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
@@ -97,31 +75,29 @@ public class RouteEditController {
         }
     }
 
-    /**
-     * Обрабатывает нажатие кнопки Отмена. Закрывает диалоговое окно без сохранения изменений.
-     */
     @FXML
     private void handleCancel() {
         logger.debug("Редактирование маршрута отменено пользователем.");
         dialogStage.close();
     }
 
-    /**
-     * Проверяет корректность заполнения всех полей формы.
-     * @return true, если данные валидны, иначе false.
-     */
     private boolean isInputValid() {
         StringBuilder errorMessage = new StringBuilder();
 
-        if (tfNumber.getText() == null || tfNumber.getText().trim().isEmpty()) errorMessage.append("Не указан номер маршрута!\n");
-        if (tfFrom.getText() == null || tfFrom.getText().trim().isEmpty()) errorMessage.append("Не указан пункт отправления!\n");
-        if (tfTo.getText() == null || tfTo.getText().trim().isEmpty()) errorMessage.append("Не указан пункт назначения!\n");
+        if (tfNumber.getText() == null || tfNumber.getText().trim().isEmpty())
+            errorMessage.append(resources.getString("routes.edit.error.no_number")).append("\n");
+
+        if (tfFrom.getText() == null || tfFrom.getText().trim().isEmpty())
+            errorMessage.append(resources.getString("routes.edit.error.no_from")).append("\n");
+
+        if (tfTo.getText() == null || tfTo.getText().trim().isEmpty())
+            errorMessage.append(resources.getString("routes.edit.error.no_to")).append("\n");
 
         boolean isHoursValid = !tfHours.getText().isEmpty() && tfHours.getText().matches("\\d+");
         boolean isMinutesValid = !tfMinutes.getText().isEmpty() && tfMinutes.getText().matches("\\d+");
 
         if (!isHoursValid && !isMinutesValid) {
-            errorMessage.append("Укажите время в пути (часы и/или минуты)!\n");
+            errorMessage.append(resources.getString("routes.edit.error.no_duration")).append("\n");
         }
 
         if (errorMessage.length() == 0) {
@@ -130,8 +106,9 @@ public class RouteEditController {
             logger.warn("Валидация формы редактирования маршрута не пройдена.");
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
-            alert.setTitle("Ошибка заполнения");
-            alert.setHeaderText("Пожалуйста, исправьте следующие ошибки:");
+            // ИСПРАВЛЕНО: Локализован заголовок и текст алерта
+            alert.setTitle(resources.getString("alert.error.fill_title"));
+            alert.setHeaderText(resources.getString("alert.error.fix_errors"));
             alert.setContentText(errorMessage.toString());
             alert.showAndWait();
             return false;

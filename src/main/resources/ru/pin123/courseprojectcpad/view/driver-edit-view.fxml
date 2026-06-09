@@ -26,10 +26,10 @@
                 <TextField fx:id="tfFirstName" promptText="Иван" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                 <Label text="Отчество:" GridPane.rowIndex="2" />
-                <TextField fx:id="tfMiddleName" promptText="Иванович (необязательно)" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <TextField fx:id="tfMiddleName" promptText="Иванович" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
                 <Label text="Возраст:" GridPane.rowIndex="3" />
-                <TextField fx:id="tfAge" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                <TextField fx:id="tfAge" promptText="54" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                 <Label text="Паспорт:" GridPane.rowIndex="4" />
                 <TextField fx:id="tfPassport" promptText="Серия и номер" GridPane.columnIndex="1" GridPane.rowIndex="4" />

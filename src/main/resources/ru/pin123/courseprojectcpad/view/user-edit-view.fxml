@@ -3,32 +3,34 @@
 <?import javafx.scene.layout.*?>
 <AnchorPane prefHeight="300.0" prefWidth="380.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.UserEditController">
     <VBox spacing="15" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20">
-        <Label text="Учетная запись сотрудника" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <Label text="%users.edit.title" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
         <GridPane vgap="10" hgap="10">
             <columnConstraints>
                 <ColumnConstraints prefWidth="100"/>
                 <ColumnConstraints prefWidth="220"/>
             </columnConstraints>
             <children>
-                <Label text="Роль:" GridPane.rowIndex="0"/>
+                <Label text="%users.edit.role" GridPane.rowIndex="0"/>
                 <ComboBox fx:id="comboRole" prefWidth="220" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                <Label text="Логин:" GridPane.rowIndex="1"/>
+                <Label text="%users.edit.login" GridPane.rowIndex="1"/>
                 <TextField fx:id="tfLogin" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                <Label text="Пароль:" GridPane.rowIndex="2"/>
-                <PasswordField fx:id="pfPassword" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="Только для новых"/>
+                <Label text="%users.edit.password" GridPane.rowIndex="2"/>
+                <PasswordField fx:id="pfPassword" GridPane.rowIndex="2" GridPane.columnIndex="1" promptText="%users.edit.password_hint"/>
 
-                <Label text="Фамилия:" GridPane.rowIndex="3"/>
+                <!-- Используем общие ключи, созданные ранее -->
+                <Label text="%col.lastname" GridPane.rowIndex="3"/>
                 <TextField fx:id="tfLastName" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-                <Label text="Имя:" GridPane.rowIndex="4"/>
+                <Label text="%col.firstname" GridPane.rowIndex="4"/>
                 <TextField fx:id="tfFirstName" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
             </children>
         </GridPane>
         <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">
-            <Button text="Сохранить" onAction="#handleOk" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
-            <Button text="Отмена" onAction="#handleCancel" style="-fx-cursor: hand;"/>
+            <!-- Используем общие ключи кнопок -->
+            <Button text="%btn.save" onAction="#handleOk" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="%btn.cancel" onAction="#handleCancel" style="-fx-cursor: hand;"/>
         </HBox>
     </VBox>
 </AnchorPane>

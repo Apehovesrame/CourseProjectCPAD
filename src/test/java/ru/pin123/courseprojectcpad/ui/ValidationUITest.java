@@ -60,9 +60,6 @@ public class ValidationUITest extends ApplicationTest {
         clickOn("#tfFirstName").write("Петр");
         clickOn("#tfPassport").write("0987654321");
 
-        // Вводим бессмыслицу в год рождения
-        clickOn("#tfBirthYear").write("Год");
-
         clickOn("Сохранить");
 
         // Ожидаем появление Alert об ошибке заполнения

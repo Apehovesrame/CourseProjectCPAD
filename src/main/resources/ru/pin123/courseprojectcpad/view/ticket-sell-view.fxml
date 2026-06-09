@@ -39,20 +39,20 @@
 
                 <!-- НОВЫЙ БЛОК: Информация о маршруте -->
                 <VBox spacing="5.0" style="-fx-background-color: #f8f9fa; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #dee2e6; -fx-border-radius: 6;">
-                    <Label text="Информация о маршруте" style="-fx-font-weight: bold; -fx-text-fill: #495057; -fx-font-size: 13px;" />
+                    <Label text="%sell.route_info" style="-fx-font-weight: bold; -fx-text-fill: #495057; -fx-font-size: 13px;" />
                     <HBox spacing="15.0" alignment="CENTER_LEFT">
                         <VBox>
-                            <Label text="Откуда:" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
+                            <Label text="%routes.edit.from" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
                             <Label fx:id="lblDeparturePoint" text="—" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #212529;" />
                         </VBox>
                         <Label text="→" style="-fx-font-size: 20px; -fx-text-fill: #6c757d; -fx-padding: 16 0 0 0;" />
                         <VBox>
-                            <Label text="Куда:" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
+                            <Label text="%routes.edit.to" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
                             <Label fx:id="lblDestinationPoint" text="—" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #212529;" />
                         </VBox>
                     </HBox>
                     <HBox spacing="10.0" style="-fx-padding: 5 0 0 0;">
-                        <Label text="Время в пути:" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
+                        <Label text="%routes.edit.duration" style="-fx-font-size: 11px; -fx-text-fill: #6c757d;" />
                         <Label fx:id="lblDuration" text="—" style="-fx-font-weight: bold; -fx-text-fill: #0d6efd; -fx-font-size: 13px;" />
                     </HBox>
                 </VBox>
@@ -73,23 +73,22 @@
                         <ColumnConstraints prefWidth="250"/>
                     </columnConstraints>
                     <children>
-                        <Label text="Фамилия:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                        <TextField fx:id="tfLastName" promptText="Иванов" GridPane.rowIndex="0" GridPane.columnIndex="1" prefHeight="30"/>
+                        <Label text="%col.lastname" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfLastName" promptText="%sell.hint.lastname" GridPane.rowIndex="0" GridPane.columnIndex="1" prefHeight="30"/>
 
-                        <Label text="Имя:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                        <TextField fx:id="tfFirstName" promptText="Иван" GridPane.rowIndex="1" GridPane.columnIndex="1" prefHeight="30"/>
+                        <Label text="%col.firstname" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfFirstName" promptText="%sell.hint.firstname" GridPane.rowIndex="1" GridPane.columnIndex="1" prefHeight="30"/>
 
-                        <Label text="Отчество:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                        <TextField fx:id="tfMiddleName" promptText="Иванович" GridPane.rowIndex="2" GridPane.columnIndex="1" prefHeight="30"/>
+                        <Label text="%col.middlename" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfMiddleName" promptText="%sell.hint.middlename" GridPane.rowIndex="2" GridPane.columnIndex="1" prefHeight="30"/>
 
-                        <Label text="Паспорт:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <Label text="%col.passport" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                         <TextField fx:id="tfPassport" promptText="1234 567890" GridPane.rowIndex="3" GridPane.columnIndex="1" prefHeight="30"/>
                     </children>
                 </GridPane>
 
             </VBox>
 
-            <!-- ВМЕСТО СТАРОГО БЛОКА С КНОПКАМИ ТЕПЕРЬ ЭТОТ КОД: -->
             <VBox alignment="TOP_CENTER" prefHeight="379.0" prefWidth="258.0" spacing="10.0">
                 <Label text="%lbl.seat" />
 

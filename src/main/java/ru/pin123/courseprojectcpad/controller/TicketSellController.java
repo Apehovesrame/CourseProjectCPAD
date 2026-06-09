@@ -26,79 +26,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-/**
- * Контроллер экрана продажи билетов.
- * Отвечает за выбор рейса, остановок, мест в салоне автобуса,
- * ввод и строгую валидацию данных пассажира, а также за непосредственное оформление билета
- * и отображение маршрутной квитанции (чека).
- */
 public class TicketSellController implements Initializable {
 
-    /** Логгер для фиксации событий продажи билетов, валидации данных и работы с UI. */
     private static final Logger logger = LoggerFactory.getLogger(TicketSellController.class);
 
-    /** DAO для работы с пассажирами (поиск или создание). */
     private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
-    /** DAO для работы с рейсами. */
     private final TripDaoImpl tripDao = new TripDaoImpl();
-    /** DAO для работы с остановками. */
     private final StopDaoImpl stopDao = new StopDaoImpl();
-    /** Сервис для бизнес-логики продажи билетов и проверки занятых мест. */
     private final TicketingService ticketingService = new TicketingService();
 
     @FXML private Button sellButton;
-    /** Список доступных рейсов для выбора. */
     @FXML private ListView<Trip> tripsListView;
-    /** Выпадающий список остановок маршрута с указанием стоимости проезда до них. */
     @FXML private ComboBox<StopItem> stopComboBox;
-    /** Метка для отображения стоимости проезда до выбранной остановки. */
     @FXML private Label costLabel;
-    /** Сетка для динамического отображения кнопок-мест в салоне автобуса. */
     @FXML private GridPane seatsGrid;
-    /** Метка с пунктом отправления выбранного рейса. */
     @FXML private Label lblDeparturePoint;
-    /** Метка с пунктом назначения выбранного рейса. */
     @FXML private Label lblDestinationPoint;
-    /** Метка с длительностью поездки. */
     @FXML private Label lblDuration;
-
-    /** Поле ввода фамилии пассажира. */
     @FXML private TextField tfLastName;
-    /** Поле ввода имени пассажира. */
     @FXML private TextField tfFirstName;
-    /** Поле ввода отчества пассажира. */
     @FXML private TextField tfMiddleName;
-    /** Поле ввода паспортных данных (с автоматической маской). */
     @FXML private TextField tfPassport;
 
-    /** Номер текущего выбранного места в салоне. */
+    // Внедряем ресурсы локализации
+    @FXML private ResourceBundle resources;
+
     private Integer selectedSeatNumber = null;
-    /** Ссылка на кнопку выбранного места для управления её визуальным состоянием. */
     private Button selectedSeatButton = null;
 
-    /**
-     * Инициализирует контроллер после загрузки FXML-файла.
-     * Загружает список рейсов, настраивает слушатели событий для элементов интерфейса
-     * и применяет маску ввода для поля паспорта.
-     *
-     * @param location  URL-адрес для разрешения относительных путей, или null.
-     * @param resources Ресурсы для локализации, или null.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Сохраняем внедренный бандл
+        this.resources = resources;
         logger.info("Инициализация экрана продажи билетов.");
 
-        // 1. Загружаем все доступные рейсы из базы
         try {
             List<Trip> trips = tripDao.findAll();
             tripsListView.setItems(FXCollections.observableArrayList(trips));
-            logger.info("Успешно загружено {} рейсов для продажи билетов.", trips.size());
         } catch (Exception e) {
             logger.error("Критическая ошибка при загрузке списка рейсов из БД.", e);
-            showAlert(Alert.AlertType.ERROR, "Ошибка БД", "Не удалось загрузить рейсы");
+            showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), resources.getString("sell.error.load_trips"));
         }
 
-        // 2. Слушатели кликов
         tripsListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) onTripSelected(newVal);
         });
@@ -106,35 +75,23 @@ public class TicketSellController implements Initializable {
         stopComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 costLabel.setText(newVal.getPrice().toString());
-                logger.debug("Выбрана остановка: {}. Стоимость: {} руб.", newVal.getStop().getName(), newVal.getPrice());
             }
         });
 
-        // 3. Подключаем умную маску для паспорта (Авто-пробел и лимит 10 цифр)
         setupPassportMask(tfPassport);
     }
 
-    /**
-     * Настраивает автоматическую маску ввода для поля паспортных данных.
-     * Форматирует ввод в вид "0000 000000", оставляя только цифры и ограничивая ввод 10 символами.
-     *
-     * @param textField текстовое поле, к которому применяется маска.
-     */
     private void setupPassportMask(TextField textField) {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) return;
-
             String digits = newValue.replaceAll("[^\\d]", "");
-
             if (digits.length() > 10) {
                 digits = digits.substring(0, 10);
             }
-
             StringBuilder formatted = new StringBuilder(digits);
             if (formatted.length() > 4) {
                 formatted.insert(4, " ");
             }
-
             if (!newValue.equals(formatted.toString())) {
                 textField.setText(formatted.toString());
                 Platform.runLater(textField::end);
@@ -142,15 +99,7 @@ public class TicketSellController implements Initializable {
         });
     }
 
-    /**
-     * Обрабатывает событие выбора рейса из списка.
-     * Загружает информацию о маршруте, доступные остановки с расчетом стоимости
-     * и отрисовывает схему свободных/занятых мест в салоне автобуса.
-     *
-     * @param trip выбранный объект рейса.
-     */
     private void onTripSelected(Trip trip) {
-        logger.debug("Обработка выбора рейса ID: {}.", trip != null ? trip.getTripId() : "null");
         try {
             if (trip == null || trip.getRoute() == null) {
                 lblDeparturePoint.setText("—");
@@ -173,25 +122,19 @@ public class TicketSellController implements Initializable {
 
             for (int i = 0; i < allStops.size(); i++) {
                 BigDecimal price = basePrice.add(new BigDecimal(i * 100));
-                stopItems.add(new StopItem(allStops.get(i), price));
+                // Передаем ресурсы внутрь StopItem для перевода валюты
+                stopItems.add(new StopItem(allStops.get(i), price, resources.getString("currency")));
             }
             stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
 
             drawBusSeats(trip);
-            logger.debug("Для рейса ID: {} загружено {} остановок и отрисована схема мест.", trip.getTripId(), stopItems.size());
 
         } catch (Exception e) {
-            logger.error("Ошибка при выборе рейса ID [{}] и загрузке связанных данных.", trip.getTripId(), e);
-            showAlert(Alert.AlertType.ERROR, "Ошибка загрузки", "Не удалось загрузить данные рейса или остановок:\n" + e.getMessage());
+            logger.error("Ошибка при выборе рейса ID [{}]", trip.getTripId(), e);
+            showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), resources.getString("sell.error.load_details") + ":\n" + e.getMessage());
         }
     }
 
-    /**
-     * Отрисовывает схему мест в салоне автобуса в виде сетки кнопок.
-     * Занятые места блокируются и выделяются красным, свободные остаются активными.
-     *
-     * @param trip рейс, для которого необходимо отрисовать места.
-     */
     private void drawBusSeats(Trip trip) {
         seatsGrid.getChildren().clear();
         seatsGrid.getColumnConstraints().clear();
@@ -199,8 +142,7 @@ public class TicketSellController implements Initializable {
         selectedSeatButton = null;
 
         if (trip.getBus() == null) {
-            logger.warn("Для рейса ID [{}] не найден привязанный автобус. Отрисовка мест невозможна.", trip.getTripId());
-            showAlert(Alert.AlertType.ERROR, "Ошибка", "К этому рейсу не привязан автобус!");
+            showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), resources.getString("sell.error.no_bus"));
             return;
         }
 
@@ -248,13 +190,6 @@ public class TicketSellController implements Initializable {
         }
     }
 
-    /**
-     * Обрабатывает клик по кнопке места. Снимает выделение с ранее выбранного места
-     * и подсвечивает новое выбранное место зеленым цветом.
-     *
-     * @param seatNumber номер выбранного места.
-     * @param seatBtn    кнопка, представляющая выбранное место.
-     */
     private void handleSeatSelection(int seatNumber, Button seatBtn) {
         if (selectedSeatButton != null) {
             selectedSeatButton.setStyle("-fx-background-color: #e0e0e0; -fx-cursor: hand;");
@@ -262,18 +197,11 @@ public class TicketSellController implements Initializable {
         selectedSeatNumber = seatNumber;
         selectedSeatButton = seatBtn;
         seatBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
-        logger.debug("Пассажир выбрал место №{}.", seatNumber);
     }
 
-    /**
-     * Обрабатывает нажатие кнопки продажи билета.
-     * Выполняет валидацию введенных данных пассажира, проверяет выбор рейса и места,
-     * создает или находит пассажира в БД, оформляет билет и отображает чек.
-     */
     @FXML
     public void onSellTicketClick() {
         try {
-            // 0. Очищаем старые красные рамки перед новой проверкой
             clearHighlights();
             boolean hasError = false;
 
@@ -285,57 +213,45 @@ public class TicketSellController implements Initializable {
             String middleName = tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "";
             String passport = tfPassport.getText() != null ? tfPassport.getText().trim() : "";
 
-            // 1. ПРОВЕРКА НА ПУСТОТУ (с подсветкой красным)
             if (lastName.isEmpty()) { highlightField(tfLastName); hasError = true; }
             if (firstName.isEmpty()) { highlightField(tfFirstName); hasError = true; }
             if (passport.isEmpty()) { highlightField(tfPassport); hasError = true; }
             if (selectedStop == null) { highlightField(stopComboBox); hasError = true; }
 
-            if (selectedTrip == null || selectedSeatNumber == null) {
-                hasError = true;
-            }
+            if (selectedTrip == null || selectedSeatNumber == null) hasError = true;
 
             if (hasError) {
-                logger.warn("Попытка продажи билета прервана: не заполнены обязательные поля формы ввода или не выбрано место/рейс.");
-                showAlert(Alert.AlertType.WARNING, "Внимание", "Заполните обязательные поля (выделены красным) и выберите место!");
+                showAlert(Alert.AlertType.WARNING, resources.getString("alert.warning.title"), resources.getString("sell.validation.empty"));
                 return;
             }
 
-            // 2. ЖЕСТКАЯ ВАЛИДАЦИЯ ФИО
             if (!lastName.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$") || !firstName.matches("^[А-ЯЁ][а-яё]*$")) {
-                logger.warn("Отказ в оформлении билета: некорректный формат Фамилии ({}) или Имени ({}).", lastName, firstName);
-                showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Фамилия и Имя должны быть на кириллице и начинаться с заглавной буквы!");
+                showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.fio"));
                 highlightField(tfLastName);
                 highlightField(tfFirstName);
                 return;
             }
             if (!middleName.isEmpty() && !middleName.matches("^[А-ЯЁ][а-яё]*$")) {
-                logger.warn("Отказ в оформлении билета: некорректный формат Отчества ({}).", middleName);
-                showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Отчество должно начинаться с заглавной буквы и содержать только кириллицу!");
+                showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.middlename"));
                 highlightField(tfMiddleName);
                 return;
             }
 
-            if (passport.length() != 11) { // 10 цифр + 1 пробел от маски
-                logger.warn("Отказ в оформлении билета: неверный формат паспорта ({}). Ожидалось 10 цифр.", passport);
-                showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Паспорт должен содержать серию и номер (10 цифр)!");
+            if (passport.length() != 11) {
+                showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.passport"));
                 highlightField(tfPassport);
                 return;
             }
 
-            // Создаем или получаем пассажира
             Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport, 0);
 
             BigDecimal cost = new BigDecimal(costLabel.getText());
             User currentUser = Session.getCurrentUser();
-            String currentLogin = currentUser != null ? currentUser.getLogin() : "unknown_user";
 
-            // Оформляем билет
             Ticket newTicket = ticketingService.sellTicket(
                     selectedTrip, passenger, selectedStop.getStop(), currentUser, selectedSeatNumber, cost
             );
 
-            // Формируем чек
             String regNumber = String.format("TKT-%02d%02d-%04d",
                     java.time.LocalDate.now().getMonthValue(),
                     java.time.LocalDate.now().getDayOfMonth(),
@@ -345,49 +261,32 @@ public class TicketSellController implements Initializable {
             String depDate = selectedTrip.getDepartureDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
             String fullPassengerName = lastName + " " + firstName + (!middleName.isEmpty() ? " " + middleName : "");
 
-            logger.info("УСПЕШНАЯ ПРОДАЖА: Билет {} оформлен пользователем [{}]. Пассажир: {}, Паспорт: {}, Рейс ID: {}, Место: №{}, Стоимость: {} руб.",
-                    regNumber, currentLogin, fullPassengerName, passport, selectedTrip.getTripId(), selectedSeatNumber, cost);
-
-            showReceipt(regNumber, fullPassengerName + " (Паспорт: " + passport + ")",
+            // Локализованный заголовок паспорта внутри чека
+            String passPrefix = resources.getString("col.passport");
+            showReceipt(regNumber, fullPassengerName + " (" + passPrefix + ": " + passport + ")",
                     selectedTrip.getRoute().getDeparturePoint() + " - " + selectedTrip.getRoute().getDestinationPoint(),
                     selectedTrip.getBus().getModel() + " (" + selectedTrip.getBus().getLicensePlate() + ")",
                     String.valueOf(selectedSeatNumber), depDate, saleDate, cost.toString());
 
-            // Очищаем форму для следующего клиента
             tfLastName.clear();
             tfFirstName.clear();
             tfMiddleName.clear();
             tfPassport.clear();
             clearHighlights();
             drawBusSeats(selectedTrip);
-            logger.debug("Форма продажи очищена и схема мест обновлена для следующего клиента.");
 
         } catch (Exception e) {
-            logger.error("Критический сбой при попытке оформления билета в кассе", e);
-            showAlert(Alert.AlertType.ERROR, "Ошибка", e.getMessage());
+            showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), e.getMessage());
         }
     }
 
-    /**
-     * Открывает модальное окно с маршрутной квитанцией (чеком) для отображения данных о проданном билете.
-     *
-     * @param regNum регистрационный номер билета.
-     * @param pass   ФИО и паспорт пассажира.
-     * @param route  маршрут следования.
-     * @param bus    информация об автобусе.
-     * @param seat   номер места.
-     * @param dep    дата и время отправления.
-     * @param sale   дата и время продажи.
-     * @param cost   стоимость билета.
-     */
     private void showReceipt(String regNum, String pass, String route, String bus, String seat, String dep, String sale, String cost) {
         try {
-            logger.debug("Открытие окна маршрутной квитанции для билета {}.", regNum);
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/ticket-receipt-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/ticket-receipt-view.fxml"), resources);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Маршрутная квитанция");
+            dialogStage.setTitle(resources.getString("receipt.title"));
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.setScene(new Scene(page));
 
@@ -397,17 +296,10 @@ public class TicketSellController implements Initializable {
 
             dialogStage.showAndWait();
         } catch (IOException e) {
-            logger.error("Ошибка ввода-вывода при загрузке fxml-представления маршрутной квитанции ticket-receipt-view.fxml", e);
+            logger.error("Ошибка при загрузке чека", e);
         }
     }
 
-    /**
-     * Отображает модальное всплывающее окно с сообщением для пользователя.
-     *
-     * @param type    тип предупреждения (INFO, WARNING, ERROR и т.д.).
-     * @param title   заголовок окна.
-     * @param content текстовое содержание сообщения.
-     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -416,9 +308,6 @@ public class TicketSellController implements Initializable {
         alert.showAndWait();
     }
 
-    /**
-     * Снимает красные рамки (подсветку ошибок) со всех полей ввода.
-     */
     private void clearHighlights() {
         String defaultStyle = "-fx-border-color: transparent;";
         tfLastName.setStyle(defaultStyle);
@@ -427,49 +316,28 @@ public class TicketSellController implements Initializable {
         stopComboBox.setStyle(defaultStyle);
     }
 
-    /**
-     * Окрашивает поле ввода в красный цвет для индикации ошибки валидации.
-     *
-     * @param field элемент управления (TextField или ComboBox), который нужно подсветить.
-     */
     private void highlightField(Control field) {
         field.setStyle("-fx-border-color: red; -fx-border-radius: 4; -fx-border-width: 2;");
     }
 
-    /**
-     * Внутренний вспомогательный класс для хранения данных об остановке
-     * и рассчитанной стоимости проезда до неё.
-     * Используется для отображения в выпадающем списке {@link #stopComboBox}.
-     */
     public static class StopItem {
-        /** Объект остановки. */
         private final Stop stop;
-        /** Рассчитанная стоимость проезда до данной остановки. */
         private final BigDecimal price;
+        private final String currencyStr;
 
-        /**
-         * Создает новый элемент списка остановок.
-         * @param stop  объект остановки.
-         * @param price стоимость проезда.
-         */
-        public StopItem(Stop stop, BigDecimal price) {
+        public StopItem(Stop stop, BigDecimal price, String currencyStr) {
             this.stop = stop;
             this.price = price;
+            this.currencyStr = currencyStr;
         }
 
-        /** @return объект остановки. */
         public Stop getStop() { return stop; }
-
-        /** @return стоимость проезда. */
         public BigDecimal getPrice() { return price; }
 
-        /**
-         * Возвращает строковое представление для отображения в ComboBox.
-         * @return строка в формате "Название остановки — Цена руб.".
-         */
         @Override
         public String toString() {
-            return stop.getName() + " — " + price + " руб.";
+            // ИСПРАВЛЕНО: Теперь валюта подтягивается из ресурсов
+            return stop.getName() + " — " + price + " " + currencyStr;
         }
     }
 }

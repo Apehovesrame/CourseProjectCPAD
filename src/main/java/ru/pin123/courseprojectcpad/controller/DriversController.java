@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 public class DriversController implements Initializable {
     private static final Logger logger = LoggerFactory.getLogger(DriversController.class);
 
+    @FXML private ResourceBundle resources;
     @FXML private TableView<Driver> driverTable;
     @FXML private TableColumn<Driver, String> colLastName;
     @FXML private TableColumn<Driver, String> colFirstName;
@@ -83,7 +84,7 @@ public class DriversController implements Initializable {
                 lblNoPhoto.setVisible(true);
             }
         } else {
-            lblDriverName.setText("Выберите водителя");
+            lblDriverName.setText(resources.getString("drivers.select_driver"));
             imgDriverPhoto.setImage(null);
             lblNoPhoto.setVisible(true);
         }
@@ -115,7 +116,7 @@ public class DriversController implements Initializable {
             }
         } else {
             logger.warn("Попытка редактирования: действие отменено, водитель не выбран в таблице.");
-            showAlert("Выберите водителя в таблице для редактирования.");
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
@@ -141,7 +142,7 @@ public class DriversController implements Initializable {
 
     private boolean showDriverEditDialog(Driver driver) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/driver-edit-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/driver-edit-view.fxml"), resources);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();

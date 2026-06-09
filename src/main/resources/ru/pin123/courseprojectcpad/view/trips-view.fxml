@@ -5,17 +5,18 @@
     <VBox spacing="10" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
         <TableView fx:id="tripTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="colRoute" text="Маршрут" prefWidth="150"/>
-                <TableColumn fx:id="colDeparture" text="Отправление" prefWidth="150"/>
-                <TableColumn fx:id="colArrival" text="Прибытие" prefWidth="150"/>
-                <TableColumn fx:id="colBus" text="Автобус" prefWidth="150"/>
+                <TableColumn fx:id="colRoute" text="%receipt.route" prefWidth="150"/>
+                <TableColumn fx:id="colDeparture" text="%receipt.departure" prefWidth="150"/>
+                <TableColumn fx:id="colArrival" text="%trips.edit.arrival" prefWidth="150"/>
+                <TableColumn fx:id="colBus" text="%receipt.bus" prefWidth="150"/>
             </columns>
         </TableView>
 
         <HBox spacing="10">
-            <Button text="Создать рейс" onAction="#handleCreateTrip" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
-            <Button text="Редактировать" onAction="#handleEditTrip" style="-fx-cursor: hand;"/>
-            <Button text="Удалить" onAction="#handleDeleteTrip" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
+            <Button text="%trips.btn.create" onAction="#handleCreateTrip" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <!-- Используем общие кнопки -->
+            <Button text="%btn.edit" onAction="#handleEditTrip" style="-fx-cursor: hand;"/>
+            <Button text="%btn.delete" onAction="#handleDeleteTrip" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
         </HBox>
     </VBox>
 </AnchorPane>

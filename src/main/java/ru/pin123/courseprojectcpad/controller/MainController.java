@@ -44,6 +44,7 @@ public class MainController {
     // Кнопки бокового меню навигации
     @FXML private Button btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers;
 
+    @FXML private ResourceBundle resources;
     /**
      * Инициализирует главный контроллер после загрузки FXML-файла.
      * Настраивает доступные языки, определяет текущую локаль системы и отображает приветствие.
@@ -66,7 +67,7 @@ public class MainController {
 
         User currentUser = Session.getCurrentUser();
         if (currentUser != null && lblGreeting != null) {
-            lblGreeting.setText("Добро пожаловать, " + currentUser.getFirstName() + " " + currentUser.getLastName() + "!");
+            lblGreeting.setText(resources.getString("menu.welcome") + ", " + currentUser.getFirstName() + "!");
             logger.debug("Отображение приветствия для пользователя: {} {}", currentUser.getFirstName(), currentUser.getLastName());
         }
     }
@@ -81,7 +82,7 @@ public class MainController {
     void onLanguageChange(ActionEvent event) {
         String selected = langSelector.getValue();
         if ("English".equals(selected)) {
-            Locale.setDefault(new Locale("en"));
+            Locale.setDefault(new Locale("en", "US"));
         } else {
             Locale.setDefault(new Locale("ru", "RU"));
         }

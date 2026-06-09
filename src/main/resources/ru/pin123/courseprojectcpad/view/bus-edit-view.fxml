@@ -19,33 +19,33 @@
                 <ColumnConstraints hgrow="SOMETIMES" maxWidth="260.0" minWidth="10.0" prefWidth="260.0" />
             </columnConstraints>
             <children>
-                <Label text="Марка/Модель:" GridPane.rowIndex="0" />
-                <TextField fx:id="tfModel" promptText="Например: ПАЗ-3205" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <Label text="%buses.edit.model" GridPane.rowIndex="0" />
+                <TextField fx:id="tfModel" promptText="%buses.edit.model_hint" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
-                <Label text="Госномер:" GridPane.rowIndex="1" />
-                <TextField fx:id="tfLicensePlate" promptText="А123АА 33" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <Label text="%buses.edit.plate" GridPane.rowIndex="1" />
+                <TextField fx:id="tfLicensePlate" promptText="%buses.edit.plate_hint" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
-                <Label text="Вместимость:" GridPane.rowIndex="2" />
-                <TextField fx:id="tfSeatCapacity" promptText="Количество мест" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <Label text="%buses.edit.capacity" GridPane.rowIndex="2" />
+                <TextField fx:id="tfSeatCapacity" promptText="%buses.edit.capacity_hint" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-                <Label text="Фотография:" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+                <Label text="%buses.edit.photo" GridPane.rowIndex="3" GridPane.valignment="TOP" />
                 <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                    <Button onAction="#handleChoosePhoto" style="-fx-cursor: hand;" text="Выбрать файл с ПК..." />
+                    <Button onAction="#handleChoosePhoto" style="-fx-cursor: hand;" text="%buses.edit.btn_choose_photo" />
                     <ImageView fx:id="imgPreview" fitHeight="147.0" fitWidth="260.0" preserveRatio="true" />
                 </VBox>
             </children>
-         <rowConstraints>
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-         </rowConstraints>
+            <rowConstraints>
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+                <RowConstraints />
+            </rowConstraints>
         </GridPane>
 
         <HBox layoutX="229.0" layoutY="341.0" spacing="10.0">
             <children>
-                <Button onAction="#handleOk" prefWidth="85" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Сохранить" />
-                <Button onAction="#handleCancel" prefWidth="75" style="-fx-cursor: hand;" text="Отмена" />
+                <Button onAction="#handleOk" prefWidth="85" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="%btn.save" />
+                <Button onAction="#handleCancel" prefWidth="75" style="-fx-cursor: hand;" text="%btn.cancel" />
             </children>
         </HBox>
     </children>

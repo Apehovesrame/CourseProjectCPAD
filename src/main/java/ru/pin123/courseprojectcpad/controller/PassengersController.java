@@ -27,14 +27,9 @@ import org.slf4j.LoggerFactory;
  * Контроллер для управления интерфейсом справочника пассажиров.
  * Обеспечивает отображение списка пассажиров в таблице, выполнение CRUD-операций
  * (добавление, редактирование, удаление), а также просмотр истории купленных билетов.
- * * @author Зонин М.Д.
- * @version 1.0
  */
 public class PassengersController implements Initializable {
 
-    /**
-     * Логгер SLF4J для логирования бизнес-событий и критических исключений в классе.
-     */
     private static final Logger logger = LoggerFactory.getLogger(PassengersController.class);
 
     @FXML private TableView<Passenger> passengerTable;
@@ -43,24 +38,17 @@ public class PassengersController implements Initializable {
     @FXML private TableColumn<Passenger, String> colMiddleName;
     @FXML private TableColumn<Passenger, String> colPassport;
 
-    /**
-     * Объект доступа к данным (DAO) для управления сущностями пассажиров в БД.
-     */
-    private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
+    // Внедряем файл локализации
+    @FXML private ResourceBundle resources;
 
-    /**
-     * Наблюдаемый список для автоматической синхронизации данных UI с моделью.
-     */
+    private final PassengerDaoImpl passengerDao = new PassengerDaoImpl();
     private final ObservableList<Passenger> passengerList = FXCollections.observableArrayList();
 
-    /**
-     * Инициализирует контроллер при загрузке fxml-формы. Настраивает привязку
-     * колонок таблицы к свойствам модели Passenger и загружает начальные данные.
-     * * @param location URL-адрес, использованный для разрешения относительных путей корневого объекта.
-     * @param resources Ресурсы, используемые для локализации корневого объекта.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // ИСПРАВЛЕНО: JavaFX внедряет bundle сюда, поэтому сохраним его
+        this.resources = resources;
+
         colLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
         colFirstName.setCellValueFactory(new PropertyValueFactory<>("firstName"));
         colMiddleName.setCellValueFactory(new PropertyValueFactory<>("middleName"));
@@ -70,9 +58,6 @@ public class PassengersController implements Initializable {
         loadData();
     }
 
-    /**
-     * Синхронизирует данные из таблицы PostgreSQL с наблюдаемым списком в интерфейсе.
-     */
     private void loadData() {
         try {
             passengerList.clear();
@@ -82,10 +67,6 @@ public class PassengersController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки добавления. Открывает диалоговое окно создания
-     * пассажира и, в случае успеха, сохраняет запись в базу данных.
-     */
     @FXML
     private void handleAdd() {
         Passenger tempPassenger = new Passenger();
@@ -98,10 +79,6 @@ public class PassengersController implements Initializable {
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки изменения. Извлекает выбранного из таблицы
-     * пассажира, открывает окно редактирования и обновляет данные в БД.
-     */
     @FXML
     private void handleEdit() {
         Passenger selectedPassenger = passengerTable.getSelectionModel().getSelectedItem();
@@ -115,14 +92,11 @@ public class PassengersController implements Initializable {
             }
         } else {
             logger.warn("Попытка редактирования: действие отменено, пассажир не выбран в таблице.");
-            showAlert("Выберите пассажира в таблице для редактирования.");
+            // ИСПРАВЛЕНО: Локализация алерта
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Обработчик нажатия кнопки удаления. Удаляет выбранного в таблице
-     * пассажира из базы данных. Блокирует операцию при нарушении целостности данных.
-     */
     @FXML
     private void handleDelete() {
         Passenger selectedPassenger = passengerTable.getSelectionModel().getSelectedItem();
@@ -136,27 +110,24 @@ public class PassengersController implements Initializable {
             } catch (RuntimeException e) {
                 logger.error("Не удалось удалить пассажира с ID [{}] из-за ограничений связанных ключей в БД (содержит билеты).",
                         selectedPassenger.getPassengerId(), e);
-                showAlert("Невозможно удалить пассажира: " + e.getMessage());
+                // ИСПРАВЛЕНО: Локализация ошибки
+                showAlert(resources.getString("passengers.delete_error") + ": " + e.getMessage());
             }
         } else {
             logger.warn("Попытка удаления: действие отменено, пассажир не выбран в таблице.");
-            showAlert("Выберите пассажира в таблице для удаления.");
+            showAlert(resources.getString("alert.select_item"));
         }
     }
 
-    /**
-     * Создает и отображает модальное диалоговое окно для добавления или редактирования
-     * параметров пассажира.
-     * * @param passenger Ссылка на изменяемый или создаваемый объект пассажира.
-     * @return true, если пользователь нажал кнопку сохранения, в противном случае false.
-     */
     private boolean showPassengerEditDialog(Passenger passenger) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/passenger-edit-view.fxml"));
+            // ИСПРАВЛЕНО: Пробрасываем resources в окно редактирования, чтобы оно тоже перевелось
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/passenger-edit-view.fxml"), resources);
             AnchorPane page = loader.load();
 
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Данные пассажира");
+            // ИСПРАВЛЕНО: Берем заголовок из ресурсов
+            dialogStage.setTitle(resources.getString("passengers.edit_title"));
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.setScene(new Scene(page));
 
@@ -172,28 +143,21 @@ public class PassengersController implements Initializable {
         }
     }
 
-    /**
-     * Отображает системное всплывающее окно типа WARNING для уведомления пользователя.
-     * * @param content Текстовое сообщение, выводимое внутри диалогового окна.
-     */
     private void showAlert(String content) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Внимание");
+        // ИСПРАВЛЕНО: Заголовок алерта
+        alert.setTitle(resources.getString("alert.warning.title"));
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
     }
 
-    /**
-     * Извлекает из базы данных архив билетов, купленных выбранным пассажиром,
-     * и форматирует их в виде текстового отчета во всплывающем окне.
-     */
     @FXML
     private void handleViewTicketHistory() {
         Passenger selected = passengerTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             logger.warn("Попытка просмотра истории поездок прервана: пассажир не выбран.");
-            showAlert("Выберите пассажира из таблицы!");
+            showAlert(resources.getString("alert.select_item"));
             return;
         }
 
@@ -223,25 +187,27 @@ public class PassengersController implements Initializable {
                     String dateFormatted = datetime != null ?
                             datetime.toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) : "Н/Д";
 
+                    // ИСПРАВЛЕНО: Локализация строковых литералов в отчете
                     history.append(counter++).append(". ")
-                            .append("Рейс: ").append(dep).append(" - ").append(dest).append("\n")
-                            .append("   Дата: ").append(dateFormatted).append("\n")
-                            .append("   Место: №").append(seat).append("\n")
-                            .append("   Стоимость: ").append(cost).append(" руб.\n\n");
+                            .append(resources.getString("passengers.history.trip")).append(": ").append(dep).append(" - ").append(dest).append("\n")
+                            .append("   ").append(resources.getString("passengers.history.date")).append(": ").append(dateFormatted).append("\n")
+                            .append("   ").append(resources.getString("passengers.history.seat")).append(": №").append(seat).append("\n")
+                            .append("   ").append(resources.getString("passengers.history.cost")).append(": ").append(cost).append(" ").append(resources.getString("passengers.history.currency")).append("\n\n");
                 }
             }
         } catch (Exception e) {
-            logger.error("Сбой выполнения SQL при выборке архива поездок для пассажира ID [{}]", selected.getPassengerId(), e);
-            showAlert("Ошибка при загрузке истории: " + e.getMessage());
+            logger.error("Сбой выполнения SQL при выборке архива поездок", e);
+            showAlert(resources.getString("passengers.history.error") + ": " + e.getMessage());
             return;
         }
 
         Alert historyDialog = new Alert(Alert.AlertType.INFORMATION);
-        historyDialog.setTitle("Архив поездок");
-        historyDialog.setHeaderText("История билетов: " + selected.getLastName() + " " + selected.getFirstName());
+        // ИСПРАВЛЕНО: Локализация диалога истории
+        historyDialog.setTitle(resources.getString("passengers.history.title"));
+        historyDialog.setHeaderText(resources.getString("passengers.history.subtitle") + ": " + selected.getLastName() + " " + selected.getFirstName());
 
         if (history.isEmpty()) {
-            historyDialog.setContentText("Билеты еще не приобретались.");
+            historyDialog.setContentText(resources.getString("passengers.history.empty"));
         } else {
             javafx.scene.control.TextArea textArea = new javafx.scene.control.TextArea(history.toString());
             textArea.setEditable(false);

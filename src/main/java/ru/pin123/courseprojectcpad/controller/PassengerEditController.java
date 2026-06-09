@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Контроллер модального диалогового окна для создания и редактирования данных пассажира.
- * Отвечает за валидацию анкетных данных (ФИО, паспорт, год рождения),
+ * Отвечает за валидацию анкетных данных (ФИО, паспорт),
  * применение маски ввода для паспортных данных и синхронизацию состояния объекта модели с интерфейсом.
  */
 public class PassengerEditController {
@@ -28,8 +28,6 @@ public class PassengerEditController {
     @FXML private TextField tfMiddleName;
     /** Поле ввода паспортных данных (с автоматической маской). */
     @FXML private TextField tfPassport;
-    /** Поле ввода года рождения пассажира. */
-    @FXML private TextField tfBirthYear;
 
     /** Ссылка на модальное окно диалога. */
     private Stage dialogStage;
@@ -66,7 +64,6 @@ public class PassengerEditController {
         if (passenger.getFirstName() != null) tfFirstName.setText(passenger.getFirstName());
         if (passenger.getMiddleName() != null) tfMiddleName.setText(passenger.getMiddleName());
         if (passenger.getPassportNumber() != null) tfPassport.setText(passenger.getPassportNumber());
-        if (passenger.getBirthYear() > 0) tfBirthYear.setText(String.valueOf(passenger.getBirthYear()));
 
         logger.debug("Форма заполнена данными пассажира: {} {} {}",
                 passenger.getLastName(), passenger.getFirstName(), passenger.getMiddleName());
@@ -91,7 +88,9 @@ public class PassengerEditController {
             passenger.setFirstName(tfFirstName.getText().trim());
             passenger.setMiddleName(tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "");
             passenger.setPassportNumber(tfPassport.getText().trim());
-            passenger.setBirthYear(Integer.parseInt(tfBirthYear.getText().trim()));
+
+            // Жестко передаем 0, так как мы отказались от сбора этого параметра
+            passenger.setBirthYear(0);
 
             isOkClicked = true;
             dialogStage.close();
@@ -173,20 +172,6 @@ public class PassengerEditController {
             errorMessage.append("Не указаны паспортные данные!\n");
         } else if (!isPassportValid(tfPassport.getText().trim())) {
             errorMessage.append("Паспорт должен содержать ровно 10 цифр!\n");
-        }
-
-        // Проверка Года рождения
-        if (tfBirthYear.getText() == null || tfBirthYear.getText().trim().isEmpty()) {
-            errorMessage.append("Не указан год рождения!\n");
-        } else {
-            try {
-                int year = Integer.parseInt(tfBirthYear.getText().trim());
-                if (year < 1900 || year > java.time.LocalDate.now().getYear()) {
-                    errorMessage.append("Некорректный год рождения!\n");
-                }
-            } catch (NumberFormatException e) {
-                errorMessage.append("Год рождения должен быть числом!\n");
-            }
         }
 
         // Если ошибок нет - пропускаем

@@ -26,61 +26,39 @@ import org.slf4j.LoggerFactory;
  */
 public class ReportsController implements Initializable {
 
-    /** Логгер для фиксации событий генерации отчетов и экспорта данных. */
     private static final Logger logger = LoggerFactory.getLogger(ReportsController.class);
 
-    /** Поле выбора начальной даты периода отчета. */
     @FXML private DatePicker dpStart;
-    /** Поле выбора конечной даты периода отчета. */
     @FXML private DatePicker dpEnd;
-
-    /** Таблица для отображения данных отчета по направлениям. */
     @FXML private TableView<RouteReportItem> reportTable;
-    /** Колонка с названием направления (пункт назначения). */
     @FXML private TableColumn<RouteReportItem, String> colDestination;
-    /** Колонка с количеством проданных билетов. */
     @FXML private TableColumn<RouteReportItem, Integer> colTickets;
-    /** Колонка с суммарной выручкой по направлению. */
     @FXML private TableColumn<RouteReportItem, BigDecimal> colRevenue;
-
-    /** Круговая диаграмма для визуализации распределения продаж по направлениям. */
     @FXML private PieChart pieChart;
-    /** Метка для отображения итоговой выручки за выбранный период. */
     @FXML private Label lblTotalRevenue;
 
-    /** DAO-объект для получения данных отчетов из базы данных. */
+    // Внедрение локализации
+    @FXML private ResourceBundle resources;
+
     private final ReportDaoImpl reportDao = new ReportDaoImpl();
 
-    /**
-     * Инициализирует контроллер после загрузки FXML-файла.
-     * Настраивает привязку данных для колонок таблицы, устанавливает период по умолчанию
-     * (последний месяц) и автоматически генерирует отчет при открытии.
-     *
-     * @param location  URL-адрес для разрешения относительных путей, или null.
-     * @param resources Ресурсы для локализации, или null.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Сохраняем переданный бандл
+        this.resources = resources;
+
         colDestination.setCellValueFactory(new PropertyValueFactory<>("destination"));
         colTickets.setCellValueFactory(new PropertyValueFactory<>("ticketsCount"));
         colRevenue.setCellValueFactory(new PropertyValueFactory<>("revenue"));
 
-        // Устанавливаем значения по умолчанию: отчет за последний месяц
         dpEnd.setValue(LocalDate.now());
         dpStart.setValue(LocalDate.now().minusMonths(1));
 
-        logger.info("Инициализация контроллера отчетов. Период по умолчанию: с {} по {}.",
-                dpStart.getValue(), dpEnd.getValue());
+        logger.info("Инициализация контроллера отчетов. Период по умолчанию: с {} по {}.", dpStart.getValue(), dpEnd.getValue());
 
-        // Сразу формируем отчет при открытии вкладки
         handleGenerateReport();
     }
 
-    /**
-     * Обрабатывает нажатие кнопки "Сформировать отчет".
-     * Получает данные из БД за выбранный период, обновляет таблицу, круговую диаграмму
-     * и итоговую сумму выручки.
-     */
     @FXML
     private void handleGenerateReport() {
         LocalDate start = dpStart.getValue();
@@ -88,7 +66,8 @@ public class ReportsController implements Initializable {
 
         if (start == null || end == null) {
             logger.warn("Попытка формирования отчета без указания периода.");
-            new Alert(Alert.AlertType.WARNING, "Пожалуйста, выберите период!").showAndWait();
+            // ИСПРАВЛЕНО: Локализация предупреждения
+            showAlert(Alert.AlertType.WARNING, resources.getString("alert.warning.title"), resources.getString("reports.alert.select_period"));
             return;
         }
 
@@ -97,10 +76,8 @@ public class ReportsController implements Initializable {
         try {
             List<RouteReportItem> reportData = reportDao.getSalesReport(start, end);
 
-            // 1. Обновляем таблицу
             reportTable.setItems(FXCollections.observableArrayList(reportData));
 
-            // 2. Обновляем график и считаем итоговую сумму
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
             BigDecimal totalRevenue = BigDecimal.ZERO;
 
@@ -110,33 +87,30 @@ public class ReportsController implements Initializable {
             }
 
             pieChart.setData(pieData);
-            lblTotalRevenue.setText(String.format("%.2f руб.", totalRevenue));
+            lblTotalRevenue.setText(String.format("%.2f %s", totalRevenue, resources.getString("currency")));
 
-            logger.info("Отчет успешно сформирован. Количество направлений: {}, общая выручка: {} руб.",
-                    reportData.size(), totalRevenue);
+            logger.info("Отчет успешно сформирован. Количество направлений: {}, общая выручка: {} руб.", reportData.size(), totalRevenue);
 
         } catch (Exception e) {
             logger.error("Критическая ошибка при формировании отчета за период с {} по {}.", start, end, e);
-            new Alert(Alert.AlertType.ERROR, "Ошибка загрузки отчета: " + e.getMessage()).showAndWait();
+            // ИСПРАВЛЕНО: Локализация ошибки
+            showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), resources.getString("reports.alert.load_error") + ": " + e.getMessage());
         }
     }
 
-    /**
-     * Обрабатывает нажатие кнопки "Экспорт в CSV".
-     * Выгружает текущие данные отчета в CSV-файл с кодировкой UTF-8 (с BOM для совместимости с MS Excel).
-     * Разделитель - точка с запятой.
-     */
     @FXML
     private void handleExportCsv() {
         if (reportTable.getItems().isEmpty()) {
             logger.warn("Попытка экспорта пустого отчета в CSV.");
-            showAlert(Alert.AlertType.WARNING, "Отчет пуст", "Сначала сформируйте отчет для выгрузки.");
+            // ИСПРАВЛЕНО: Локализация предупреждения о пустом отчете
+            showAlert(Alert.AlertType.WARNING, resources.getString("alert.warning.title"), resources.getString("reports.alert.empty_report"));
             return;
         }
 
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Сохранить отчет");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Файлы", "*.csv"));
+        // ИСПРАВЛЕНО: Локализация окна сохранения
+        fileChooser.setTitle(resources.getString("reports.filechooser.title"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter(resources.getString("reports.filechooser.csv"), "*.csv"));
         fileChooser.setInitialFileName("sales_report.csv");
 
         java.io.File file = fileChooser.showSaveDialog(reportTable.getScene().getWindow());
@@ -144,12 +118,12 @@ public class ReportsController implements Initializable {
         if (file != null) {
             logger.info("Начало экспорта отчета в файл: {}", file.getAbsolutePath());
 
-            // Используем UTF-8 с BOM для корректного отображения кириллицы в MS Excel
             try (java.io.PrintWriter writer = new java.io.PrintWriter(
                     new java.io.OutputStreamWriter(new java.io.FileOutputStream(file), java.nio.charset.StandardCharsets.UTF_8))) {
 
-                writer.write('\ufeff'); // BOM маркер
-                writer.println("Направление;Продано билетов;Выручка (руб)");
+                writer.write('\ufeff');
+                // ИСПРАВЛЕНО: Локализация заголовков столбцов внутри самого CSV файла
+                writer.println(resources.getString("reports.csv.headers"));
 
                 for (RouteReportItem item : reportTable.getItems()) {
                     writer.println(String.format("%s;%d;%s",
@@ -159,24 +133,19 @@ public class ReportsController implements Initializable {
                 }
 
                 logger.info("Отчет успешно экспортирован в CSV. Количество записей: {}.", reportTable.getItems().size());
-                showAlert(Alert.AlertType.INFORMATION, "Успех", "Отчет успешно сохранен!");
+                // ИСПРАВЛЕНО: Локализация сообщения об успехе
+                showAlert(Alert.AlertType.INFORMATION, resources.getString("alert.info.title"), resources.getString("reports.alert.save_success"));
 
             } catch (Exception e) {
                 logger.error("Ошибка при экспорте отчета в файл: {}", file.getAbsolutePath(), e);
-                showAlert(Alert.AlertType.ERROR, "Ошибка", "Не удалось сохранить файл: " + e.getMessage());
+                // ИСПРАВЛЕНО: Локализация ошибки сохранения
+                showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.title"), resources.getString("reports.alert.save_error") + ": " + e.getMessage());
             }
         } else {
             logger.debug("Экспорт отчета в CSV был отменен пользователем.");
         }
     }
 
-    /**
-     * Отображает модальное всплывающее окно с сообщением для пользователя.
-     *
-     * @param type    тип предупреждения (INFO, WARNING, ERROR и т.д.).
-     * @param title   заголовок окна.
-     * @param content текстовое содержание сообщения.
-     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

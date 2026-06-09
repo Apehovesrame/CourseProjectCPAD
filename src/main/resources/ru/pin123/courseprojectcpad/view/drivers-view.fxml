@@ -14,36 +14,36 @@
 <AnchorPane prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.DriversController">
     <VBox spacing="15" AnchorPane.bottomAnchor="15" AnchorPane.leftAnchor="15" AnchorPane.rightAnchor="15" AnchorPane.topAnchor="15">
 
-        <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Справочник водителей" />
+        <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="%drivers.title" />
 
         <HBox spacing="20" VBox.vgrow="ALWAYS">
             <TableView fx:id="driverTable" prefHeight="354.0" prefWidth="578.0" style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2); -fx-background-radius: 5;" HBox.hgrow="ALWAYS">
                 <columns>
-                    <TableColumn fx:id="colLastName" prefWidth="120" text="Фамилия" />
-                    <TableColumn fx:id="colFirstName" prefWidth="120" text="Имя" />
-                    <TableColumn fx:id="colMiddleName" prefWidth="120" text="Отчество" />
-                    <TableColumn fx:id="colAge" prefWidth="80" text="Возраст" />
-                    <TableColumn fx:id="colPassport" prefWidth="120" text="Паспорт" />
+                    <TableColumn fx:id="colLastName" prefWidth="120" text="%col.lastname" />
+                    <TableColumn fx:id="colFirstName" prefWidth="120" text="%col.firstname" />
+                    <TableColumn fx:id="colMiddleName" prefWidth="120" text="%col.middlename" />
+                    <TableColumn fx:id="colAge" prefWidth="80" text="%col.age" />
+                    <TableColumn fx:id="colPassport" prefWidth="120" text="%col.passport" />
                 </columns>
             </TableView>
-      
+
             <VBox alignment="TOP_CENTER" minWidth="186.0" prefHeight="354.0" prefWidth="205.0" spacing="15" style="-fx-background-color: white; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);">
-                <Label style="-fx-text-fill: #555; -fx-font-weight: bold; -fx-font-size: 14px;" text="Личная карточка" />
-      
+                <Label style="-fx-text-fill: #555; -fx-font-weight: bold; -fx-font-size: 14px;" text="%drivers.profile_card" />
+
                 <StackPane style="-fx-border-color: #ccc; -fx-border-radius: 5; -fx-padding: 2; -fx-background-color: #f9f9f9; -fx-background-radius: 5; -fx-min-height: 200; -fx-min-width: 160;">
-                    <Label fx:id="lblNoPhoto" style="-fx-text-fill: #999;" text="Нет фото" />
+                    <Label fx:id="lblNoPhoto" style="-fx-text-fill: #999;" text="%drivers.no_photo" />
                     <ImageView fx:id="imgDriverPhoto" fitHeight="200" fitWidth="160" preserveRatio="true" />
                 </StackPane>
-      
-                <Label fx:id="lblDriverName" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-alignment: center;" text="Выберите водителя" textAlignment="CENTER" wrapText="true" />
+
+                <Label fx:id="lblDriverName" style="-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-alignment: center;" text="%drivers.select_driver" textAlignment="CENTER" wrapText="true" />
             </VBox>
         </HBox>
 
         <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: white; -fx-padding: 10; -fx-border-radius: 5; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);">
-            <Button onAction="#handleAdd" prefHeight="35" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Добавить водителя" />
-            <Button onAction="#handleEdit" prefHeight="35" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Редактировать" />
+            <Button onAction="#handleAdd" prefHeight="35" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="%drivers.btn.add" />
+            <Button onAction="#handleEdit" prefHeight="35" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="%btn.edit" />
             <Region HBox.hgrow="ALWAYS" />
-            <Button onAction="#handleDelete" prefHeight="35" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="Удалить" />
+            <Button onAction="#handleDelete" prefHeight="35" style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" text="%btn.delete" />
         </HBox>
     </VBox>
 </AnchorPane>

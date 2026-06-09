@@ -20,9 +20,6 @@
 
                 <Label text="Паспорт:" GridPane.rowIndex="3" />
                 <TextField fx:id="tfPassport" GridPane.columnIndex="1" GridPane.rowIndex="3" promptText="Серия и номер" />
-
-                <Label text="Год рождения:" GridPane.rowIndex="4" />
-                <TextField fx:id="tfBirthYear" GridPane.columnIndex="1" GridPane.rowIndex="4" promptText="Например: 1990" />
             </children>
         </GridPane>
 

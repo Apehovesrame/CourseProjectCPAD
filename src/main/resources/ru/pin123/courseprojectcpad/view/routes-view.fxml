@@ -5,17 +5,17 @@
     <VBox spacing="10" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.topAnchor="10">
         <TableView fx:id="routeTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="colNumber" text="№ Маршрута" prefWidth="100"/>
-                <TableColumn fx:id="colFrom" text="Откуда" prefWidth="150"/>
-                <TableColumn fx:id="colTo" text="Куда" prefWidth="150"/>
-                <TableColumn fx:id="colDuration" text="Время в пути" prefWidth="120"/>
+                <TableColumn fx:id="colNumber" text="%routes.col.number" prefWidth="100"/>
+                <TableColumn fx:id="colFrom" text="%routes.col.from" prefWidth="150"/>
+                <TableColumn fx:id="colTo" text="%routes.col.to" prefWidth="150"/>
+                <TableColumn fx:id="colDuration" text="%routes.col.duration" prefWidth="120"/>
             </columns>
         </TableView>
 
         <HBox spacing="10">
-            <Button text="Добавить маршрут" onAction="#handleAdd" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
-            <Button text="Редактировать" onAction="#handleEdit" style="-fx-cursor: hand;"/>
-            <Button text="Удалить" onAction="#handleDelete" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
+            <Button text="%routes.btn.add" onAction="#handleAdd" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
+            <Button text="%btn.edit" onAction="#handleEdit" style="-fx-cursor: hand;"/>
+            <Button text="%btn.delete" onAction="#handleDelete" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
         </HBox>
     </VBox>
 </AnchorPane>
