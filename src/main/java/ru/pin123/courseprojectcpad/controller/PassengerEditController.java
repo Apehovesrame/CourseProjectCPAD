@@ -10,29 +10,56 @@ import ru.pin123.courseprojectcpad.model.Passenger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Контроллер модального диалогового окна для создания и редактирования данных пассажира.
+ * Отвечает за валидацию анкетных данных (ФИО, паспорт, год рождения),
+ * применение маски ввода для паспортных данных и синхронизацию состояния объекта модели с интерфейсом.
+ */
 public class PassengerEditController {
 
+    /** Логгер для фиксации событий редактирования профиля пассажира. */
+    private static final Logger logger = LoggerFactory.getLogger(PassengerEditController.class);
+
+    /** Поле ввода фамилии пассажира. */
     @FXML private TextField tfLastName;
+    /** Поле ввода имени пассажира. */
     @FXML private TextField tfFirstName;
+    /** Поле ввода отчества пассажира. */
     @FXML private TextField tfMiddleName;
+    /** Поле ввода паспортных данных (с автоматической маской). */
     @FXML private TextField tfPassport;
+    /** Поле ввода года рождения пассажира. */
     @FXML private TextField tfBirthYear;
 
+    /** Ссылка на модальное окно диалога. */
     private Stage dialogStage;
+    /** Объект пассажира, данные которого редактируются. */
     private Passenger passenger;
+    /** Флаг, указывающий на то, что пользователь подтвердил ввод данных (нажал ОК). */
     private boolean isOkClicked = false;
 
-    // ВЫЗЫВАЕТСЯ АВТОМАТИЧЕСКИ ПРИ ОТКРЫТИИ ОКНА
+    /**
+     * Инициализирует контроллер после загрузки FXML-файла.
+     * Настраивает автоматическую маску ввода для поля паспортных данных.
+     */
     @FXML
     public void initialize() {
-        // Подключаем автоматическую маску паспорта сразу при загрузке
+        logger.debug("Инициализация формы редактирования пассажира. Настройка маски для поля паспорта.");
         setupPassportField(tfPassport);
     }
 
+    /**
+     * Устанавливает ссылку на модальное окно диалога.
+     * @param dialogStage объект Stage для управления окном.
+     */
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
+    /**
+     * Инициализирует форму данными выбранного пассажира.
+     * @param passenger объект Passenger для редактирования.
+     */
     public void setPassenger(Passenger passenger) {
         this.passenger = passenger;
         if (passenger.getLastName() != null) tfLastName.setText(passenger.getLastName());
@@ -40,12 +67,23 @@ public class PassengerEditController {
         if (passenger.getMiddleName() != null) tfMiddleName.setText(passenger.getMiddleName());
         if (passenger.getPassportNumber() != null) tfPassport.setText(passenger.getPassportNumber());
         if (passenger.getBirthYear() > 0) tfBirthYear.setText(String.valueOf(passenger.getBirthYear()));
+
+        logger.debug("Форма заполнена данными пассажира: {} {} {}",
+                passenger.getLastName(), passenger.getFirstName(), passenger.getMiddleName());
     }
 
+    /**
+     * Возвращает статус подтверждения данных пользователем.
+     * @return true, если пользователь нажал кнопку ОК, иначе false.
+     */
     public boolean isOkClicked() {
         return isOkClicked;
     }
 
+    /**
+     * Обрабатывает нажатие кнопки ОК. Валидирует введенные данные
+     * и сохраняет их в объект модели, после чего закрывает диалоговое окно.
+     */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
@@ -57,15 +95,27 @@ public class PassengerEditController {
 
             isOkClicked = true;
             dialogStage.close();
+
+            logger.info("Данные пассажира успешно сохранены: {} {} (Паспорт: {}).",
+                    passenger.getLastName(), passenger.getFirstName(), passenger.getPassportNumber());
         }
     }
 
+    /**
+     * Обрабатывает нажатие кнопки Отмена. Закрывает диалоговое окно без сохранения изменений.
+     */
     @FXML
     private void handleCancel() {
+        logger.debug("Редактирование пассажира отменено пользователем.");
         dialogStage.close();
     }
 
-    // ЛОГИКА МАСКИ ДЛЯ ПАСПОРТА
+    /**
+     * Настраивает автоматическую маску ввода для поля паспортных данных.
+     * Форматирует ввод в вид "0000 000000", оставляя только цифры и автоматически добавляя пробел.
+     *
+     * @param textField текстовое поле, к которому применяется маска.
+     */
     private void setupPassportField(TextField textField) {
         textField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null || newValue.isEmpty()) return;
@@ -89,7 +139,10 @@ public class PassengerEditController {
         });
     }
 
-    // ПРОВЕРКА ДАННЫХ ПЕРЕД СОХРАНЕНИЕМ
+    /**
+     * Проверяет корректность заполнения всех полей формы.
+     * @return true, если данные валидны, иначе false.
+     */
     private boolean isInputValid() {
         StringBuilder errorMessage = new StringBuilder();
 
@@ -140,6 +193,7 @@ public class PassengerEditController {
         if (errorMessage.isEmpty()) {
             return true;
         } else {
+            logger.warn("Валидация формы редактирования пассажира не пройдена.");
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
             alert.setTitle("Ошибка заполнения");
@@ -150,11 +204,23 @@ public class PassengerEditController {
         }
     }
 
-    // ВАЛИДАТОРЫ
+    /**
+     * Валидирует часть ФИО (фамилию, имя или отчество).
+     * Проверяет, что строка начинается с заглавной буквы и содержит только кириллицу (допускается дефис).
+     *
+     * @param fioPart часть ФИО для проверки.
+     * @return true, если формат корректен, иначе false.
+     */
     private boolean isFioValid(String fioPart) {
         return fioPart != null && fioPart.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$");
     }
 
+    /**
+     * Валидирует формат паспортных данных с учетом маски (4 цифры, пробел, 6 цифр).
+     *
+     * @param passport строка паспортных данных для проверки.
+     * @return true, если формат корректен, иначе false.
+     */
     private boolean isPassportValid(String passport) {
         // Т.к. маска ставит пробел, регулярка ожидает: 4 цифры, пробел, 6 цифр
         return passport != null && passport.matches("^\\d{4} \\d{6}$");
