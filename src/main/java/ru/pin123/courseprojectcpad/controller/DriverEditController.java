@@ -9,14 +9,22 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Driver;
 
-import java.io.ByteArrayInputStream; // Для перевода байтов в картинку
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.nio.file.Files;         // Для чтения файла в массив байт
+import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Контроллер модального диалогового окна для создания и редактирования данных водителя.
+ * Отвечает за валидацию анкетных данных, обработку загрузки изображений (конвертация в byte[])
+ * и синхронизацию состояния объекта модели с интерфейсом.
+ */
 public class DriverEditController {
+
+    /** Логгер для фиксации событий редактирования профиля водителя. */
+    private static final Logger logger = LoggerFactory.getLogger(DriverEditController.class);
 
     @FXML private TextField tfLastName;
     @FXML private TextField tfFirstName;
@@ -29,13 +37,17 @@ public class DriverEditController {
     private Driver driver;
     private boolean isOkClicked = false;
 
-    // ИСПРАВЛЕНО: Теперь храним фотографию как массив байт, а не путь к файлу
+    /** Буферный массив байт для временного хранения изображения водителя. */
     private byte[] driverImageBytes = null;
 
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
+    /**
+     * Инициализирует форму данными выбранного водителя.
+     * @param driver объект Driver для редактирования.
+     */
     public void setDriver(Driver driver) {
         this.driver = driver;
         if (driver.getLastName() != null) tfLastName.setText(driver.getLastName());
@@ -44,8 +56,8 @@ public class DriverEditController {
         if (driver.getAge() > 0) tfAge.setText(String.valueOf(driver.getAge()));
         if (driver.getPassport() != null) tfPassport.setText(driver.getPassport());
 
-        // ИСПРАВЛЕНО: Загрузка существующего фото из байтов
         if (driver.getDriverImage() != null && driver.getDriverImage().length > 0) {
+            logger.debug("Загрузка фото водителя из БД для отображения в превью.");
             this.driverImageBytes = driver.getDriverImage();
             ByteArrayInputStream bis = new ByteArrayInputStream(driverImageBytes);
             imgPreview.setImage(new Image(bis));
@@ -58,6 +70,9 @@ public class DriverEditController {
         return isOkClicked;
     }
 
+    /**
+     * Вызывает файловый менеджер для выбора изображения и загружает его в память приложения.
+     */
     @FXML
     private void handleChoosePhoto() {
         FileChooser fileChooser = new FileChooser();
@@ -69,10 +84,11 @@ public class DriverEditController {
         File file = fileChooser.showOpenDialog(dialogStage);
         if (file != null) {
             try {
-                // ИСПРАВЛЕНО: Читаем весь файл в массив байт
                 this.driverImageBytes = Files.readAllBytes(file.toPath());
+                logger.info("Изображение успешно загружено из файла: {}. Размер: {} байт.", file.getName(), driverImageBytes.length);
                 imgPreview.setImage(new Image(file.toURI().toString()));
             } catch (Exception e) {
+                logger.error("Критическая ошибка при чтении файла изображения водителя.", e);
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.initOwner(dialogStage);
                 alert.setTitle("Ошибка чтения файла");
@@ -83,15 +99,19 @@ public class DriverEditController {
         }
     }
 
+    /**
+     * Сбрасывает текущее изображение водителя (удаление фото из профиля).
+     */
     @FXML
     private void handleRemovePhoto() {
-        // 1. Обнуляем массив байтов, чтобы при сохранении в БД ушел NULL
         this.driverImageBytes = null;
-
-        // 2. Очищаем картинку в интерфейсе
         imgPreview.setImage(null);
+        logger.debug("Фотография водителя была удалена пользователем.");
     }
 
+    /**
+     * Валидирует данные и сохраняет их в объект модели при нажатии кнопки ОК.
+     */
     @FXML
     private void handleOk() {
         if (isInputValid()) {
@@ -100,8 +120,6 @@ public class DriverEditController {
             driver.setMiddleName(tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "");
             driver.setAge(Integer.parseInt(tfAge.getText().trim()));
             driver.setPassport(tfPassport.getText().trim());
-
-            // ИСПРАВЛЕНО: Сохраняем массив байт в модель водителя
             driver.setDriverImage(driverImageBytes);
 
             isOkClicked = true;
@@ -114,12 +132,19 @@ public class DriverEditController {
         dialogStage.close();
     }
 
+    /**
+     * Проверяет корректность заполнения всех полей формы.
+     * @return true, если данные валидны, иначе false.
+     */
     private boolean isInputValid() {
         StringBuilder errorMessage = new StringBuilder();
 
-        if (tfLastName.getText() == null || tfLastName.getText().trim().isEmpty()) errorMessage.append("Не указана фамилия!\n");
-        if (tfFirstName.getText() == null || tfFirstName.getText().trim().isEmpty()) errorMessage.append("Не указано имя!\n");
-        if (tfPassport.getText() == null || tfPassport.getText().trim().isEmpty()) errorMessage.append("Не указан паспорт!\n");
+        if (tfLastName.getText() == null || tfLastName.getText().trim().isEmpty() || !isFioValid(tfLastName.getText().trim()))
+            errorMessage.append("Фамилия введена неверно (кириллица, заглавная буква)!\n");
+        if (tfFirstName.getText() == null || tfFirstName.getText().trim().isEmpty() || !isFioValid(tfFirstName.getText().trim()))
+            errorMessage.append("Имя введено неверно!\n");
+        if (tfPassport.getText() == null || !isPassportValid(tfPassport.getText().trim()))
+            errorMessage.append("Паспорт должен содержать 10 цифр!\n");
 
         if (tfAge.getText() == null || tfAge.getText().trim().isEmpty()) {
             errorMessage.append("Не указан возраст!\n");
@@ -135,6 +160,7 @@ public class DriverEditController {
         if (errorMessage.length() == 0) {
             return true;
         } else {
+            logger.warn("Валидация формы редактирования водителя не пройдена.");
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.initOwner(dialogStage);
             alert.setTitle("Ошибка заполнения");
@@ -144,6 +170,7 @@ public class DriverEditController {
             return false;
         }
     }
+
     private boolean isFioValid(String fioPart) {
         return fioPart != null && fioPart.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$");
     }
