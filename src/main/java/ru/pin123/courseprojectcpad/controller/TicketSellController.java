@@ -43,7 +43,6 @@ public class TicketSellController implements Initializable {
     @FXML private TextField tfFirstName;
     @FXML private TextField tfMiddleName;
     @FXML private TextField tfPassport;
-    @FXML private TextField birthYearField;
 
     private Integer selectedSeatNumber = null;
     private Button selectedSeatButton = null;
@@ -201,43 +200,54 @@ public class TicketSellController implements Initializable {
     @FXML
     public void onSellTicketClick() {
         try {
+            // 0. Очищаем старые красные рамки перед новой проверкой
+            clearHighlights();
+            boolean hasError = false;
+
             Trip selectedTrip = tripsListView.getSelectionModel().getSelectedItem();
             StopItem selectedStop = stopComboBox.getValue();
 
-            // Читаем новые разделенные поля
             String lastName = tfLastName.getText() != null ? tfLastName.getText().trim() : "";
             String firstName = tfFirstName.getText() != null ? tfFirstName.getText().trim() : "";
             String middleName = tfMiddleName.getText() != null ? tfMiddleName.getText().trim() : "";
             String passport = tfPassport.getText() != null ? tfPassport.getText().trim() : "";
-            String birthYearStr = birthYearField.getText() != null ? birthYearField.getText().trim() : "";
 
-            // БАЗОВАЯ ПРОВЕРКА НА ПУСТОТУ
-            if (selectedTrip == null || selectedStop == null || selectedSeatNumber == null ||
-                    lastName.isEmpty() || firstName.isEmpty() || passport.isEmpty() || birthYearStr.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Внимание", "Заполните обязательные поля и выберите место!");
+            // 1. ПРОВЕРКА НА ПУСТОТУ (с подсветкой красным)
+            if (lastName.isEmpty()) { highlightField(tfLastName); hasError = true; }
+            if (firstName.isEmpty()) { highlightField(tfFirstName); hasError = true; }
+            if (passport.isEmpty()) { highlightField(tfPassport); hasError = true; }
+            if (selectedStop == null) { highlightField(stopComboBox); hasError = true; }
+
+            if (selectedTrip == null || selectedSeatNumber == null) {
+                hasError = true; // Рейс или место не подсветишь как текстовое поле, так что просто флаг
+            }
+
+            if (hasError) {
+                showAlert(Alert.AlertType.WARNING, "Внимание", "Заполните обязательные поля (выделены красным) и выберите место!");
                 return;
             }
 
-            // ЖЕСТКАЯ ВАЛИДАЦИЯ ФИО (Кириллица + Заглавная буква. Разрешаем двойные фамилии через дефис)
+            // 2. ЖЕСТКАЯ ВАЛИДАЦИЯ ФИО
             if (!lastName.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$") || !firstName.matches("^[А-ЯЁ][а-яё]*$")) {
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Фамилия и Имя должны быть на кириллице и начинаться с заглавной буквы!");
+                highlightField(tfLastName);
+                highlightField(tfFirstName);
                 return;
             }
             if (!middleName.isEmpty() && !middleName.matches("^[А-ЯЁ][а-яё]*$")) {
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Отчество должно начинаться с заглавной буквы и содержать только кириллицу!");
+                highlightField(tfMiddleName);
                 return;
             }
 
-            // ЖЕСТКАЯ ВАЛИДАЦИЯ ПАСПОРТА (Так как мы ставим авто-пробел, длина должна быть ровно 11)
             if (passport.length() != 11) {
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Паспорт должен содержать серию и номер (10 цифр)!");
+                highlightField(tfPassport);
                 return;
             }
 
-            int birthYear = Integer.parseInt(birthYearStr);
-
-            // Создаем или получаем пассажира
-            Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport, birthYear);
+            // Создаем или получаем пассажира (год рождения передаем как 0, так как мы его убрали)
+            Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport, 0);
 
             BigDecimal cost = new BigDecimal(costLabel.getText());
             User currentUser = Session.getCurrentUser();
@@ -255,8 +265,6 @@ public class TicketSellController implements Initializable {
 
             String saleDate = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
             String depDate = selectedTrip.getDepartureDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-
-            // Склеиваем ФИО для отображения в чеке
             String fullPassengerName = lastName + " " + firstName + (!middleName.isEmpty() ? " " + middleName : "");
 
             showReceipt(regNumber, fullPassengerName + " (Паспорт: " + passport + ")",
@@ -269,11 +277,9 @@ public class TicketSellController implements Initializable {
             tfFirstName.clear();
             tfMiddleName.clear();
             tfPassport.clear();
-            birthYearField.clear();
+            clearHighlights(); // Убираем рамки после успешной продажи
             drawBusSeats(selectedTrip);
 
-        } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Ошибка", "Год рождения должен быть числом!");
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Ошибка", e.getMessage());
         }
@@ -305,6 +311,20 @@ public class TicketSellController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    // Метод для снятия красных рамок со всех полей
+    private void clearHighlights() {
+        String defaultStyle = "-fx-border-color: transparent;";
+        tfLastName.setStyle(defaultStyle);
+        tfFirstName.setStyle(defaultStyle);
+        tfPassport.setStyle(defaultStyle);
+        stopComboBox.setStyle(defaultStyle);
+    }
+
+    // Метод для окрашивания пустого поля в красный цвет
+    private void highlightField(Control field) {
+        field.setStyle("-fx-border-color: red; -fx-border-radius: 4; -fx-border-width: 2;");
     }
 
     public static class StopItem {

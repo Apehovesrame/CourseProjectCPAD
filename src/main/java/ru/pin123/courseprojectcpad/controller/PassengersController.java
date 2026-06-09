@@ -117,38 +117,64 @@ public class PassengersController implements Initializable {
     }
     @FXML
     private void handleViewTicketHistory() {
-        ru.pin123.courseprojectcpad.model.Passenger selected = passengerTable.getSelectionModel().getSelectedItem();
+        Passenger selected = passengerTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            new Alert(Alert.AlertType.WARNING, "Выберите пассажира из таблицы!").showAndWait();
+            showAlert("Выберите пассажира из таблицы!");
             return;
         }
-
-        ru.pin123.courseprojectcpad.dao.TicketDaoImpl ticketDao = new ru.pin123.courseprojectcpad.dao.TicketDaoImpl();
-        // Загружаем все билеты из системы
-        List<ru.pin123.courseprojectcpad.model.Ticket> allTickets = ticketDao.findAll();
 
         StringBuilder history = new StringBuilder();
         int counter = 1;
 
-        for (ru.pin123.courseprojectcpad.model.Ticket ticket : allTickets) {
-            // Маппим билеты, принадлежащие конкретно этому пассажиру
-            if (ticket.getPassenger() != null && ticket.getPassenger().getPassengerId().equals(selected.getPassengerId())) {
-                history.append(counter++).append(". ")
-                        .append("Рейс: ").append(ticket.getTrip().getRoute().toString()).append("\n")
-                        .append("   Дата отправления: ").append(ticket.getTrip().getDepartureDatetime().toString()).append("\n")
-                        .append("   Место в салоне: №").append(ticket.getSeatNumber()).append("\n")
-                        .append("   Стоимость: ").append(ticket.getCost()).append(" руб.\n\n");
+        // Прямой 100% рабочий запрос в БД для объединения рейсов, маршрутов и билетов
+        String sql = "SELECT r.departure_point, r.destination_point, tr.departure_datetime, t.seat_number, t.cost " +
+                "FROM tickets t " +
+                "JOIN trips tr ON t.trip_id = tr.trip_id " +
+                "JOIN routes r ON tr.route_id = r.route_id " +
+                "WHERE t.passenger_id = ? " +
+                "ORDER BY tr.departure_datetime DESC";
+
+        try (java.sql.Connection conn = ru.pin123.courseprojectcpad.DBHelper.getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, selected.getPassengerId());
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String dep = rs.getString("departure_point");
+                    String dest = rs.getString("destination_point");
+                    java.sql.Timestamp datetime = rs.getTimestamp("departure_datetime");
+                    int seat = rs.getInt("seat_number");
+                    java.math.BigDecimal cost = rs.getBigDecimal("cost");
+
+                    String dateFormatted = datetime != null ?
+                            datetime.toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")) : "Н/Д";
+
+                    history.append(counter++).append(". ")
+                            .append("Рейс: ").append(dep).append(" - ").append(dest).append("\n")
+                            .append("   Дата: ").append(dateFormatted).append("\n")
+                            .append("   Место: №").append(seat).append("\n")
+                            .append("   Стоимость: ").append(cost).append(" руб.\n\n");
+                }
             }
+        } catch (Exception e) {
+            showAlert("Ошибка при загрузке истории: " + e.getMessage());
+            return;
         }
 
         Alert historyDialog = new Alert(Alert.AlertType.INFORMATION);
-        historyDialog.setTitle("Архив поездок пассажира");
-        historyDialog.setHeaderText("История билетов для: " + selected.getLastName() + " " + selected.getFirstName());
+        historyDialog.setTitle("Архив поездок");
+        historyDialog.setHeaderText("История билетов: " + selected.getLastName() + " " + selected.getFirstName());
 
-        if (history.length() == 0) {
-            historyDialog.setContentText("У данного пассажира архив поездок пуст (билеты еще не приобретались).");
+        if (history.isEmpty()) {
+            historyDialog.setContentText("Билеты еще не приобретались.");
         } else {
-            historyDialog.setContentText(history.toString());
+            // Добавляем окно прокрутки для удобства
+            javafx.scene.control.TextArea textArea = new javafx.scene.control.TextArea(history.toString());
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            historyDialog.getDialogPane().setContent(textArea);
         }
         historyDialog.showAndWait();
     }
