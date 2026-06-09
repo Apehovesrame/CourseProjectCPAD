@@ -15,7 +15,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.dao.PassengerDaoImpl;
 import ru.pin123.courseprojectcpad.model.Passenger;
-
+import java.util.List;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -114,5 +114,42 @@ public class PassengersController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+    @FXML
+    private void handleViewTicketHistory() {
+        ru.pin123.courseprojectcpad.model.Passenger selected = passengerTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            new Alert(Alert.AlertType.WARNING, "Выберите пассажира из таблицы!").showAndWait();
+            return;
+        }
+
+        ru.pin123.courseprojectcpad.dao.TicketDaoImpl ticketDao = new ru.pin123.courseprojectcpad.dao.TicketDaoImpl();
+        // Загружаем все билеты из системы
+        List<ru.pin123.courseprojectcpad.model.Ticket> allTickets = ticketDao.findAll();
+
+        StringBuilder history = new StringBuilder();
+        int counter = 1;
+
+        for (ru.pin123.courseprojectcpad.model.Ticket ticket : allTickets) {
+            // Маппим билеты, принадлежащие конкретно этому пассажиру
+            if (ticket.getPassenger() != null && ticket.getPassenger().getPassengerId().equals(selected.getPassengerId())) {
+                history.append(counter++).append(". ")
+                        .append("Рейс: ").append(ticket.getTrip().getRoute().toString()).append("\n")
+                        .append("   Дата отправления: ").append(ticket.getTrip().getDepartureDatetime().toString()).append("\n")
+                        .append("   Место в салоне: №").append(ticket.getSeatNumber()).append("\n")
+                        .append("   Стоимость: ").append(ticket.getCost()).append(" руб.\n\n");
+            }
+        }
+
+        Alert historyDialog = new Alert(Alert.AlertType.INFORMATION);
+        historyDialog.setTitle("Архив поездок пассажира");
+        historyDialog.setHeaderText("История билетов для: " + selected.getLastName() + " " + selected.getFirstName());
+
+        if (history.length() == 0) {
+            historyDialog.setContentText("У данного пассажира архив поездок пуст (билеты еще не приобретались).");
+        } else {
+            historyDialog.setContentText(history.toString());
+        }
+        historyDialog.showAndWait();
     }
 }

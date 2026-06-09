@@ -19,20 +19,20 @@
         <VBox spacing="10.0" style="-fx-padding: 15; -fx-background-color: #f9f9f9; -fx-border-color: #ccc; -fx-border-width: 0 1 0 0;" prefWidth="220.0">
 
             <Label text="УПРАВЛЕНИЕ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold;"/>
-            <Button text="Продажа билета" onAction="#onTicketSellClick" prefWidth="190.0" prefHeight="35.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
-            <Button text="Расписание рейсов" onAction="#onTripsClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnTicketSell" text="Продажа билета" onAction="#onTicketSellClick" prefWidth="190.0" prefHeight="35.0" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            <Button fx:id="btnTrips" text="Расписание рейсов" onAction="#onTripsClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
 
             <Label text="АНАЛИТИКА" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
-            <Button text="Отчеты и статистика" onAction="#onReportsClick" prefWidth="190.0" prefHeight="30.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
+            <Button fx:id="btnReports" text="Отчеты и статистика" onAction="#onReportsClick" prefWidth="190.0" prefHeight="30.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-cursor: hand; -fx-font-weight: bold;"/>
 
             <Label text="АДМИНИСТРИРОВАНИЕ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
-            <Button text="Управление сотрудниками" onAction="#onUsersClick" prefWidth="190.0" prefHeight="30.0"/>
+            <Button fx:id="btnUsers" text="Управление сотрудниками" onAction="#onUsersClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
 
             <Label text="СПРАВОЧНИКИ" style="-fx-font-size: 12px; -fx-text-fill: #888; -fx-font-weight: bold; -fx-padding: 15 0 0 0;"/>
-            <Button text="Справочник маршрутов" onAction="#onRoutesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
-            <Button text="Справочник автобусов" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
-            <Button text="Справочник водителей" onAction="#onDriversClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
-            <Button text="База пассажиров" onAction="#onPassengersClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnRoutes" text="Справочник маршрутов" onAction="#onRoutesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnBuses" text="Справочник автобусов" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnDrivers" text="Справочник водителей" onAction="#onDriversClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnPassengers" text="База пассажиров" onAction="#onPassengersClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
         </VBox>
     </left>
 

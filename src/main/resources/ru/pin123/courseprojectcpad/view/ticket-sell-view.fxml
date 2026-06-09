@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.ColumnConstraints?> <?import javafx.scene.text.Font?>
 
 <HBox spacing="20.0" styleClass="root" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.TicketSellController">
     <padding>
@@ -67,10 +67,29 @@
                     </Label>
                 </HBox>
 
-                <Label text="%lbl.passenger" />
-                <TextField fx:id="fioField" prefHeight="39.0" prefWidth="395.0" promptText="%prompt.fio" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
-                <TextField fx:id="passportField" promptText="%prompt.passport" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
-                <TextField fx:id="birthYearField" promptText="Год рождения (напр. 1990)" style="-fx-padding: 10; -fx-background-radius: 4; -fx-border-color: #ccc; -fx-border-radius: 4;" />
+                <GridPane hgap="10" vgap="12">
+                    <columnConstraints>
+                        <ColumnConstraints prefWidth="110"/>
+                        <ColumnConstraints prefWidth="250"/>
+                    </columnConstraints>
+                    <children>
+                        <Label text="Фамилия:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfLastName" promptText="Иванов" GridPane.rowIndex="0" GridPane.columnIndex="1" prefHeight="30"/>
+
+                        <Label text="Имя:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfFirstName" promptText="Иван" GridPane.rowIndex="1" GridPane.columnIndex="1" prefHeight="30"/>
+
+                        <Label text="Отчество:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfMiddleName" promptText="Иванович (необязательно)" GridPane.rowIndex="2" GridPane.columnIndex="1" prefHeight="30"/>
+
+                        <Label text="Паспорт:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <TextField fx:id="tfPassport" promptText="1234 567890" GridPane.rowIndex="3" GridPane.columnIndex="1" prefHeight="30"/>
+
+                        <Label text="Год рождения:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <TextField fx:id="birthYearField" promptText="1995" GridPane.rowIndex="4" GridPane.columnIndex="1" prefHeight="30"/>
+                    </children>
+                </GridPane>
+
             </VBox>
 
             <!-- ВМЕСТО СТАРОГО БЛОКА С КНОПКАМИ ТЕПЕРЬ ЭТОТ КОД: -->

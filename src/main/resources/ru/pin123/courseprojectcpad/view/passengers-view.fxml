@@ -15,6 +15,7 @@
             <Button text="Добавить пассажира" onAction="#handleAdd" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-cursor: hand;"/>
             <Button text="Редактировать" onAction="#handleEdit" style="-fx-cursor: hand;"/>
             <Button text="Удалить" onAction="#handleDelete" style="-fx-text-fill: #D32F2F; -fx-cursor: hand;"/>
+            <Button text="История поездок" onAction="#handleViewTicketHistory" style="-fx-background-color: #FF9800; -fx-text-fill: white; -fx-cursor: hand;"/>
         </HBox>
     </VBox>
 </AnchorPane>

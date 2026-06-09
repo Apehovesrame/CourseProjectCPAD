@@ -14,6 +14,7 @@
             <Label text="по:" />
             <DatePicker fx:id="dpEnd" prefWidth="130"/>
             <Button text="Сформировать отчет" onAction="#handleGenerateReport" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+            <Button text="Экспорт в CSV" onAction="#handleExportCsv" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
         </HBox>
 
         <HBox spacing="20" VBox.vgrow="ALWAYS">

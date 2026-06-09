@@ -48,3 +48,11 @@
 .tab-pane .tab:selected .tab-label {
     -fx-text-fill: #2196f3;
 }
+.active-menu-btn {
+    -fx-background-color: #bbdefb !important;
+    -fx-text-fill: #1976d2 !important;
+    -fx-border-color: #1976d2;
+    -fx-border-width: 0 0 0 4;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}

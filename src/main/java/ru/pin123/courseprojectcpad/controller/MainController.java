@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -25,6 +26,9 @@ public class MainController {
 
     // Ссылка на центральную область экрана, куда будут грузиться меню
     @FXML private StackPane contentArea;
+
+    // ИСПРАВЛЕНО: Теперь здесь btnTicketSell вместо btnCashbox
+    @FXML private Button btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers;
 
     @FXML
     public void initialize() {
@@ -78,44 +82,53 @@ public class MainController {
     }
 
     // --- БЛОК НАВИГАЦИИ ---
+    // ИСПРАВЛЕНО: Теперь подсветка вызывается при каждом клике
 
     @FXML
     void onBusesClick(ActionEvent event) {
+        setActiveButton(btnBuses);
         loadView("/ru/pin123/courseprojectcpad/view/buses-table.fxml");
     }
 
     @FXML
     void onDriversClick(ActionEvent event) {
+        setActiveButton(btnDrivers);
         loadView("/ru/pin123/courseprojectcpad/view/drivers-view.fxml");
     }
 
     @FXML
     void onPassengersClick(ActionEvent event) {
+        setActiveButton(btnPassengers);
         loadView("/ru/pin123/courseprojectcpad/view/passengers-view.fxml");
     }
 
     @FXML
     void onRoutesClick(ActionEvent event) {
+        setActiveButton(btnRoutes);
         loadView("/ru/pin123/courseprojectcpad/view/routes-view.fxml");
     }
 
     @FXML
     void onTripsClick(ActionEvent event) {
+        setActiveButton(btnTrips);
         loadView("/ru/pin123/courseprojectcpad/view/trips-view.fxml");
     }
 
     @FXML
     void onTicketSellClick(ActionEvent event) {
+        setActiveButton(btnTicketSell);
         loadView("/ru/pin123/courseprojectcpad/view/ticket-sell-view.fxml");
     }
 
     @FXML
     void onReportsClick(ActionEvent event) {
+        setActiveButton(btnReports);
         loadView("/ru/pin123/courseprojectcpad/view/reports-view.fxml");
     }
 
     @FXML
     void onUsersClick(ActionEvent event) {
+        setActiveButton(btnUsers);
         loadView("/ru/pin123/courseprojectcpad/view/users-view.fxml");
     }
 
@@ -153,5 +166,14 @@ public class MainController {
             System.err.println("Ошибка при загрузке FXML файла: " + fxmlPath);
             e.printStackTrace();
         }
+    }
+
+    // ИСПРАВЛЕНО: Массив кнопок теперь содержит btnTicketSell вместо btnCashbox
+    private void setActiveButton(Button activeBtn) {
+        Button[] allButtons = {btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers};
+        for (Button btn : allButtons) {
+            if (btn != null) btn.getStyleClass().remove("active-menu-btn");
+        }
+        if (activeBtn != null) activeBtn.getStyleClass().add("active-menu-btn");
     }
 }

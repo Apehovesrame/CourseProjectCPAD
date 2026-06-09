@@ -9,7 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import ru.pin123.courseprojectcpad.dao.ReportDaoImpl;
 import ru.pin123.courseprojectcpad.model.RouteReportItem;
-
+import javafx.stage.FileChooser;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.LocalDate;
@@ -76,5 +76,46 @@ public class ReportsController implements Initializable {
         } catch (Exception e) {
             new Alert(Alert.AlertType.ERROR, "Ошибка загрузки отчета: " + e.getMessage()).showAndWait();
         }
+    }
+    @FXML
+    private void handleExportCsv() {
+        if (reportTable.getItems().isEmpty()) {
+            showAlert(Alert.AlertType.WARNING, "Отчет пуст", "Сначала сформируйте отчет для выгрузки.");
+            return;
+        }
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Сохранить отчет");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Файлы", "*.csv"));
+        fileChooser.setInitialFileName("sales_report.csv");
+
+        java.io.File file = fileChooser.showSaveDialog(reportTable.getScene().getWindow());
+
+        if (file != null) {
+            // Используем UTF-8 с BOM для корректного отображения кириллицы в MS Excel
+            try (java.io.PrintWriter writer = new java.io.PrintWriter(
+                    new java.io.OutputStreamWriter(new java.io.FileOutputStream(file), java.nio.charset.StandardCharsets.UTF_8))) {
+
+                writer.write('\ufeff'); // BOM маркер
+                writer.println("Направление;Продано билетов;Выручка (руб)");
+
+                for (RouteReportItem item : reportTable.getItems()) {
+                    writer.println(String.format("%s;%d;%s",
+                            item.getDestination(),
+                            item.getTicketsCount(),
+                            item.getRevenue().toString()));
+                }
+                showAlert(Alert.AlertType.INFORMATION, "Успех", "Отчет успешно сохранен!");
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Ошибка", "Не удалось сохранить файл: " + e.getMessage());
+            }
+        }
+    }
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
