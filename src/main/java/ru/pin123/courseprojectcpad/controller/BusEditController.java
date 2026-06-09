@@ -9,9 +9,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Bus;
 
-import java.io.ByteArrayInputStream; // Добавили для чтения картинки из байт
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.nio.file.Files;         // Добавили для быстрого чтения файла в byte[]
+import java.nio.file.Files;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BusEditController {
     @FXML private TextField tfModel;

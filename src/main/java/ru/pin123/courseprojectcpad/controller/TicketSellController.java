@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TicketSellController implements Initializable {
 
     private static final Logger logger = LoggerFactory.getLogger(TicketSellController.class);
@@ -219,38 +222,43 @@ public class TicketSellController implements Initializable {
             if (selectedStop == null) { highlightField(stopComboBox); hasError = true; }
 
             if (selectedTrip == null || selectedSeatNumber == null) {
-                hasError = true; // Рейс или место не подсветишь как текстовое поле, так что просто флаг
+                hasError = true;
             }
 
             if (hasError) {
+                logger.warn("Попытка продажи билета прервана: не заполнены обязательные поля формы ввода или не выбрано место.");
                 showAlert(Alert.AlertType.WARNING, "Внимание", "Заполните обязательные поля (выделены красным) и выберите место!");
                 return;
             }
 
             // 2. ЖЕСТКАЯ ВАЛИДАЦИЯ ФИО
             if (!lastName.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$") || !firstName.matches("^[А-ЯЁ][а-яё]*$")) {
+                logger.warn("Отказ в оформлении билета: некорректный формат Фамилии ({}) или Имени ({}).", lastName, firstName);
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Фамилия и Имя должны быть на кириллице и начинаться с заглавной буквы!");
                 highlightField(tfLastName);
                 highlightField(tfFirstName);
                 return;
             }
             if (!middleName.isEmpty() && !middleName.matches("^[А-ЯЁ][а-яё]*$")) {
+                logger.warn("Отказ в оформлении билета: некорректный формат Отчества ({}).", middleName);
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Отчество должно начинаться с заглавной буквы и содержать только кириллицу!");
                 highlightField(tfMiddleName);
                 return;
             }
 
             if (passport.length() != 11) {
+                logger.warn("Отказ в оформлении билета: неверный формат паспорта ({}). Ожидалось 10 цифр.", passport);
                 showAlert(Alert.AlertType.ERROR, "Ошибка ввода", "Паспорт должен содержать серию и номер (10 цифр)!");
                 highlightField(tfPassport);
                 return;
             }
 
-            // Создаем или получаем пассажира (год рождения передаем как 0, так как мы его убрали)
+            // Создаем или получаем пассажира
             Passenger passenger = passengerDao.getOrCreate(lastName, firstName, middleName, passport, 0);
 
             BigDecimal cost = new BigDecimal(costLabel.getText());
             User currentUser = Session.getCurrentUser();
+            String currentLogin = currentUser != null ? currentUser.getLogin() : "unknown_user";
 
             // Оформляем билет
             Ticket newTicket = ticketingService.sellTicket(
@@ -267,6 +275,9 @@ public class TicketSellController implements Initializable {
             String depDate = selectedTrip.getDepartureDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
             String fullPassengerName = lastName + " " + firstName + (!middleName.isEmpty() ? " " + middleName : "");
 
+            logger.info("УСПЕШНАЯ ПРОДАЖА: Билет {} оформлен пользователем [{}]. Пассажир: {}, Паспорт: {}, Рейс ID: {}, Место: №{}, Стоимость: {} руб.",
+                    regNumber, currentLogin, fullPassengerName, passport, selectedTrip.getTripId(), selectedSeatNumber, cost);
+
             showReceipt(regNumber, fullPassengerName + " (Паспорт: " + passport + ")",
                     selectedTrip.getRoute().getDeparturePoint() + " - " + selectedTrip.getRoute().getDestinationPoint(),
                     selectedTrip.getBus().getModel() + " (" + selectedTrip.getBus().getLicensePlate() + ")",
@@ -277,10 +288,11 @@ public class TicketSellController implements Initializable {
             tfFirstName.clear();
             tfMiddleName.clear();
             tfPassport.clear();
-            clearHighlights(); // Убираем рамки после успешной продажи
+            clearHighlights();
             drawBusSeats(selectedTrip);
 
         } catch (Exception e) {
+            logger.error("Критический сбой при попытке оформления билета в кассе", e);
             showAlert(Alert.AlertType.ERROR, "Ошибка", e.getMessage());
         }
     }
@@ -301,7 +313,7 @@ public class TicketSellController implements Initializable {
 
             dialogStage.showAndWait();
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+            logger.error("Ошибка ввода-вывода при загрузке fxml-представления маршрутной квитанции ticket-receipt-view.fxml", e);
         }
     }
 

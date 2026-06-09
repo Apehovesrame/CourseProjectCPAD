@@ -12,7 +12,6 @@ import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Session;
 import ru.pin123.courseprojectcpad.service.AuthService;
 
-// ИСПРАВЛЕНО: Добавили импорты для логирования и локализации
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;

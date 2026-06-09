@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RoutesController implements Initializable {
     @FXML private TableView<Route> routeTable;
     @FXML private TableColumn<Route, String> colNumber;

@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MainController {
 
     @FXML private ComboBox<String> langSelector;

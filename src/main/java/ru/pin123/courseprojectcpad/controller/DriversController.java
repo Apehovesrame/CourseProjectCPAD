@@ -24,7 +24,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DriversController implements Initializable {
+
+    // ИСПРАВЛЕНО: Инициализировали статическую переменную логгера для текущего класса
+    private static final Logger logger = LoggerFactory.getLogger(DriversController.class);
 
     @FXML private TableView<Driver> driverTable;
     @FXML private TableColumn<Driver, String> colLastName;
@@ -60,8 +66,12 @@ public class DriversController implements Initializable {
     }
 
     private void loadData() {
-        driverList.clear();
-        driverList.addAll(driverDao.findAll());
+        try {
+            driverList.clear();
+            driverList.addAll(driverDao.findAll());
+        } catch (Exception e) {
+            logger.error("Критическая ошибка при попытке загрузки списка водителей из слоя DAO", e);
+        }
     }
 
     // МЕТОД ОБНОВЛЕНИЯ КРАСИВОЙ КАРТОЧКИ
@@ -90,6 +100,9 @@ public class DriversController implements Initializable {
         boolean okClicked = showDriverEditDialog(tempDriver);
         if (okClicked) {
             driverDao.save(tempDriver);
+            // ДОБАВЛЕНО ЛОГИРОВАНИЕ УСПЕШНОГО ДОБАВЛЕНИЯ (INFO)
+            logger.info("Добавлен новый водитель: {} {} {} (Паспорт: {}).",
+                    tempDriver.getLastName(), tempDriver.getFirstName(), tempDriver.getMiddleName(), tempDriver.getPassport());
             loadData();
         }
     }
@@ -101,10 +114,14 @@ public class DriversController implements Initializable {
             boolean okClicked = showDriverEditDialog(selectedDriver);
             if (okClicked) {
                 driverDao.update(selectedDriver);
+                // ДОБАВЛЕНО ЛОГИРОВАНИЕ ИЗМЕНЕНИЯ ДАННЫХ (INFO)
+                logger.info("Изменены анкетные данные водителя с ID [{}]: {} {}.",
+                        selectedDriver.getDriverId(), selectedDriver.getLastName(), selectedDriver.getFirstName());
                 loadData();
                 showDriverDetails(selectedDriver);
             }
         } else {
+            logger.warn("Попытка редактирования: действие отменено, водитель не выбран в таблице.");
             showAlert("Выберите водителя в таблице для редактирования.");
         }
     }
@@ -115,12 +132,18 @@ public class DriversController implements Initializable {
         if (selectedDriver != null) {
             try {
                 driverDao.delete(selectedDriver.getDriverId());
+                // ДОБАВЛЕНО ОПАСНОЕ ЛОГИРОВАНИЕ УДАЛЕНИЯ (WARN)
+                logger.warn("Из базы данных удален водитель: {} {} (ID: {}, Паспорт: {}).",
+                        selectedDriver.getLastName(), selectedDriver.getFirstName(), selectedDriver.getDriverId(), selectedDriver.getPassport());
                 loadData();
                 showDriverDetails(null); // Очищаем карточку
             } catch (RuntimeException e) {
+                // ДОБАВЛЕНО ЛОГИРОВАНИЕ ОШИБКИ УДАЛЕНИЯ СВЯЗАННОЙ СУЩНОСТИ (ERROR)
+                logger.error("Не удалось удалить водителя с ID [{}] из-за ограничений внешнего ключа в БД.", selectedDriver.getDriverId(), e);
                 showAlert("Невозможно удалить водителя: " + e.getMessage());
             }
         } else {
+            logger.warn("Попытка удаления: действие отменено, водитель не выбран в таблице.");
             showAlert("Выберите водителя в таблице для удаления.");
         }
     }
@@ -142,7 +165,8 @@ public class DriversController implements Initializable {
             dialogStage.showAndWait();
             return controller.isOkClicked();
         } catch (IOException e) {
-            e.printStackTrace();
+            // ИСПРАВЛЕНО: Заменили немой printStackTrace() на полноценную фиксацию ошибки в логах
+            logger.error("Критическая ошибка ввода-вывода интерфейса при загрузке fxml-формы driver-edit-view.fxml", e);
             return false;
         }
     }

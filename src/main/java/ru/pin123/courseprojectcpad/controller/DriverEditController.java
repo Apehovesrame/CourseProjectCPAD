@@ -13,6 +13,9 @@ import java.io.ByteArrayInputStream; // Для перевода байтов в 
 import java.io.File;
 import java.nio.file.Files;         // Для чтения файла в массив байт
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DriverEditController {
 
     @FXML private TextField tfLastName;

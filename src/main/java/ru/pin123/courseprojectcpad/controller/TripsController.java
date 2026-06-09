@@ -23,6 +23,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TripsController implements Initializable {
     @FXML private TableView<Trip> tripTable;
     @FXML private TableColumn<Trip, String> colRoute;

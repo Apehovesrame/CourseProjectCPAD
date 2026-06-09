@@ -16,6 +16,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ReportsController implements Initializable {
 
     @FXML private DatePicker dpStart;

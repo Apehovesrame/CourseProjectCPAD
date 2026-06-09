@@ -12,6 +12,9 @@ import ru.pin123.courseprojectcpad.model.User;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UserEditController implements Initializable {
     @FXML private ComboBox<Role> comboRole;
     @FXML private TextField tfLogin;

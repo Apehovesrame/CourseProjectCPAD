@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TripEditController implements Initializable {
 
     @FXML private ComboBox<Route> comboRoutes;

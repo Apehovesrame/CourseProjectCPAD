@@ -7,6 +7,9 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import ru.pin123.courseprojectcpad.model.Passenger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PassengerEditController {
 
     @FXML private TextField tfLastName;
