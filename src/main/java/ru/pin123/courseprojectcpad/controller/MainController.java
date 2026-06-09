@@ -45,6 +45,8 @@ public class MainController {
     @FXML private Button btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers;
 
     @FXML private ResourceBundle resources;
+    private String currentViewPath = null;
+    private String activeButtonId = null;
     /**
      * Инициализирует главный контроллер после загрузки FXML-файла.
      * Настраивает доступные языки, определяет текущую локаль системы и отображает приветствие.
@@ -91,6 +93,28 @@ public class MainController {
     }
 
     /**
+     * Восстанавливает открытый экран и подсветку кнопки меню.
+     */
+    public void restoreState(String viewPath, String btnId) {
+        if (viewPath != null) {
+            loadView(viewPath);
+        }
+        if (btnId != null) {
+            // Ищем кнопку по сохраненному ID и делаем её активной
+            switch (btnId) {
+                case "btnRoutes": setActiveButton(btnRoutes); break;
+                case "btnBuses": setActiveButton(btnBuses); break;
+                case "btnDrivers": setActiveButton(btnDrivers); break;
+                case "btnPassengers": setActiveButton(btnPassengers); break;
+                case "btnTrips": setActiveButton(btnTrips); break;
+                case "btnTicketSell": setActiveButton(btnTicketSell); break;
+                case "btnReports": setActiveButton(btnReports); break;
+                case "btnUsers": setActiveButton(btnUsers); break;
+            }
+        }
+    }
+
+    /**
      * Полностью перезагружает главное окно приложения для применения новых настроек локали.
      */
     private void reloadUI() {
@@ -98,6 +122,9 @@ public class MainController {
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/ru/pin123/courseprojectcpad/view/main-view.fxml"), bundle);
             Parent root = loader.load();
+
+            MainController newController = loader.getController();
+            newController.restoreState(this.currentViewPath, this.activeButtonId);
 
             if (langSelector != null && langSelector.getScene() != null) {
                 Scene scene = langSelector.getScene();
@@ -225,7 +252,7 @@ public class MainController {
             Parent root = loader.load();
 
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setTitle("Авторизация");
+            stage.setTitle(bundle.getString("login.title"));
             stage.setScene(new Scene(root));
         } catch (IOException e) {
             logger.error("Критическая ошибка при загрузке экрана авторизации после выхода из системы.", e);
@@ -241,6 +268,8 @@ public class MainController {
      * @param fxmlPath путь к FXML-файлу представления.
      */
     private void loadView(String fxmlPath) {
+
+        this.currentViewPath = fxmlPath;
         try {
             ResourceBundle bundle = ResourceBundle.getBundle("main", Locale.getDefault());
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath), bundle);
@@ -268,7 +297,10 @@ public class MainController {
         }
         if (activeBtn != null) {
             activeBtn.getStyleClass().add("active-menu-btn");
+            this.activeButtonId = activeBtn.getId();
             logger.debug("Активной кнопкой меню установлена: {}", activeBtn.getId());
+        } else {
+            this.activeButtonId = null;
         }
     }
 }
