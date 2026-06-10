@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="600.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.pin123.courseprojectcpad.controller.AuditController">
+    <VBox spacing="10" AnchorPane.topAnchor="10" AnchorPane.bottomAnchor="10" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10">
+        <Label text="%audit.title" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Button text="%btn.refresh" onAction="#handleRefresh" style="-fx-cursor: hand; -fx-background-color: #3498db; -fx-text-fill: white;"/>
+        </HBox>
+
+        <TableView fx:id="auditTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="colId" prefWidth="50" text="ID" />
+                <TableColumn fx:id="colDate" prefWidth="140" text="%audit.col.date" />
+                <TableColumn fx:id="colAction" prefWidth="100" text="%audit.col.action" />
+                <TableColumn fx:id="colTable" prefWidth="120" text="%audit.col.table" />
+                <TableColumn fx:id="colUser" prefWidth="120" text="%audit.col.user" />
+                <TableColumn fx:id="colOldData" prefWidth="220" text="%audit.col.old" />
+                <TableColumn fx:id="colNewData" prefWidth="220" text="%audit.col.new" />
+            </columns>
+        </TableView>
+    </VBox>
+</AnchorPane>

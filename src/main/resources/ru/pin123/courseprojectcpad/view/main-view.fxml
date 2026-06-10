@@ -33,6 +33,7 @@
             <Button fx:id="btnBuses" text="%menu.buses" onAction="#onBusesClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
             <Button fx:id="btnDrivers" text="%menu.drivers" onAction="#onDriversClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
             <Button fx:id="btnPassengers" text="%menu.passengers" onAction="#onPassengersClick" prefWidth="190.0" prefHeight="30.0" style="-fx-cursor: hand;"/>
+            <Button fx:id="btnAudit" text="%menu.audit" onAction="#onAuditClick" maxWidth="Infinity" styleClass="menu-btn"/>
         </VBox>
     </left>
 

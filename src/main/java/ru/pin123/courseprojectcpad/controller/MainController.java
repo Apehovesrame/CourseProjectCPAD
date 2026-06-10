@@ -42,7 +42,8 @@ public class MainController {
     @FXML private StackPane contentArea;
 
     // Кнопки бокового меню навигации
-    @FXML private Button btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers;
+    // Добавьте btnAudit в конец списка
+    @FXML private Button btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers, btnAudit;
 
     @FXML private ResourceBundle resources;
     private String currentViewPath = null;
@@ -110,6 +111,7 @@ public class MainController {
                 case "btnTicketSell": setActiveButton(btnTicketSell); break;
                 case "btnReports": setActiveButton(btnReports); break;
                 case "btnUsers": setActiveButton(btnUsers); break;
+                case "btnAudit": setActiveButton(btnAudit); break;
             }
         }
     }
@@ -230,6 +232,13 @@ public class MainController {
         loadView("/ru/pin123/courseprojectcpad/view/users-view.fxml");
     }
 
+    @FXML
+    void onAuditClick(ActionEvent event) {
+        logger.info("Переход в раздел: Аудит");
+        setActiveButton(btnAudit);
+        loadView("/ru/pin123/courseprojectcpad/view/audit-view.fxml");
+    }
+
     // ================= БЛОК ВЫХОДА =================
 
     /**
@@ -291,7 +300,7 @@ public class MainController {
      * @param activeBtn кнопка, которую необходимо выделить как активную.
      */
     private void setActiveButton(Button activeBtn) {
-        Button[] allButtons = {btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers};
+        Button[] allButtons = {btnRoutes, btnBuses, btnDrivers, btnPassengers, btnTrips, btnTicketSell, btnReports, btnUsers, btnAudit};
         for (Button btn : allButtons) {
             if (btn != null) btn.getStyleClass().remove("active-menu-btn");
         }
