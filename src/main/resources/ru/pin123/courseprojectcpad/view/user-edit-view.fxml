@@ -25,6 +25,9 @@
 
                 <Label text="%col.firstname" GridPane.rowIndex="4"/>
                 <TextField fx:id="tfFirstName" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                <Label text="%lbl.middleName" GridPane.rowIndex="5"/>
+                <TextField fx:id="tfMiddleName" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
             </children>
         </GridPane>
         <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 10 0 0 0;">

@@ -124,6 +124,50 @@ public class UserDaoImpl {
         }
     }
 
+    /**
+     * Обновляет данные существующего пользователя в БД.
+     * Если передан новый пароль, обновляет также хеш в таблице авторизации.
+     */
+    public void update(User user, String rawPassword) {
+        String sqlUser = PropertiesUtil.get("sql.user.update_user");
+
+        try (Connection conn = DBHelper.getConnection()) {
+            conn.setAutoCommit(false); // Начинаем транзакцию
+
+            try {
+                // 1. Обновляем личные данные и роль в таблице users
+                try (PreparedStatement pstmtUser = conn.prepareStatement(sqlUser)) {
+                    pstmtUser.setString(1, user.getLastName());
+                    pstmtUser.setString(2, user.getFirstName());
+                    pstmtUser.setString(3, user.getMiddleName()); // Отчество
+                    pstmtUser.setLong(4, user.getRole().getRoleId());
+                    pstmtUser.setString(5, user.getLogin()); // Условие WHERE login=?
+                    pstmtUser.executeUpdate();
+                }
+
+                // 2. Если ввели новый пароль — обновляем и его в таблице authorizations
+                if (rawPassword != null && !rawPassword.trim().isEmpty()) {
+                    String sqlAuth = PropertiesUtil.get("sql.user.update_auth");
+                    try (PreparedStatement pstmtAuth = conn.prepareStatement(sqlAuth)) {
+                        // ВНИМАНИЕ: Если ваш утилитный класс называется по-другому (например, HashUtil), измените здесь название
+                        pstmtAuth.setString(1, ru.pin123.courseprojectcpad.util.HashHelper.computeSha256Hash(rawPassword));
+                        pstmtAuth.setString(2, user.getLogin());
+                        pstmtAuth.executeUpdate();
+                    }
+                }
+
+                conn.commit(); // Фиксируем изменения
+            } catch (SQLException e) {
+                conn.rollback(); // Откатываем при ошибке
+                throw new RuntimeException("Ошибка при обновлении данных пользователя.", e);
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Ошибка подключения к базе данных", e);
+        }
+    }
+
     public void delete(Long userId) {
         String sqlSelectLogin = PropertiesUtil.get("sql.user.find_login_by_id");
         String sqlDeleteUser = PropertiesUtil.get("sql.user.delete_user");

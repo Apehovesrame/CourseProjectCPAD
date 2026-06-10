@@ -43,7 +43,7 @@ public class PassengerEditController {
     @FXML
     public void initialize() {
         logger.debug("Инициализация формы редактирования пассажира. Настройка маски для поля паспорта.");
-        setupPassportField(tfPassport);
+        ru.pin123.courseprojectcpad.util.UIValidationHelper.setupPassportMask(tfPassport);
     }
 
     /**
@@ -107,35 +107,6 @@ public class PassengerEditController {
     private void handleCancel() {
         logger.debug("Редактирование пассажира отменено пользователем.");
         dialogStage.close();
-    }
-
-    /**
-     * Настраивает автоматическую маску ввода для поля паспортных данных.
-     * Форматирует ввод в вид "0000 000000", оставляя только цифры и автоматически добавляя пробел.
-     *
-     * @param textField текстовое поле, к которому применяется маска.
-     */
-    private void setupPassportField(TextField textField) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null || newValue.isEmpty()) return;
-
-            String digits = newValue.replaceAll("[^\\d]", "");
-
-            if (digits.length() > 10) {
-                digits = digits.substring(0, 10);
-            }
-
-            StringBuilder formatted = new StringBuilder(digits);
-            if (formatted.length() > 4) {
-                formatted.insert(4, " ");
-            }
-
-            if (!newValue.equals(formatted.toString())) {
-                textField.setText(formatted.toString());
-                // Сдвигаем курсор в конец, чтобы было удобно печатать
-                Platform.runLater(textField::end);
-            }
-        });
     }
 
     /**

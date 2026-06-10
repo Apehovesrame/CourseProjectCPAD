@@ -18,6 +18,8 @@ import ru.pin123.courseprojectcpad.dao.StopDaoImpl;
 import ru.pin123.courseprojectcpad.dao.TripDaoImpl;
 import ru.pin123.courseprojectcpad.model.*;
 import ru.pin123.courseprojectcpad.service.TicketingService;
+// Импортируем наш утилитный класс
+import ru.pin123.courseprojectcpad.util.UIValidationHelper;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -48,7 +50,6 @@ public class TicketSellController implements Initializable {
     @FXML private TextField tfMiddleName;
     @FXML private TextField tfPassport;
 
-    // Внедряем ресурсы локализации
     @FXML private ResourceBundle resources;
 
     private Integer selectedSeatNumber = null;
@@ -56,7 +57,6 @@ public class TicketSellController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Сохраняем внедренный бандл
         this.resources = resources;
         logger.info("Инициализация экрана продажи билетов.");
 
@@ -78,25 +78,8 @@ public class TicketSellController implements Initializable {
             }
         });
 
-        setupPassportMask(tfPassport);
-    }
-
-    private void setupPassportMask(TextField textField) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null) return;
-            String digits = newValue.replaceAll("[^\\d]", "");
-            if (digits.length() > 10) {
-                digits = digits.substring(0, 10);
-            }
-            StringBuilder formatted = new StringBuilder(digits);
-            if (formatted.length() > 4) {
-                formatted.insert(4, " ");
-            }
-            if (!newValue.equals(formatted.toString())) {
-                textField.setText(formatted.toString());
-                Platform.runLater(textField::end);
-            }
-        });
+        // Используем маску из хелпера (дублирующий метод удален)
+        UIValidationHelper.setupPassportMask(tfPassport);
     }
 
     private void onTripSelected(Trip trip) {
@@ -122,7 +105,6 @@ public class TicketSellController implements Initializable {
 
             for (int i = 0; i < allStops.size(); i++) {
                 BigDecimal price = basePrice.add(new BigDecimal(i * 100));
-                // Передаем ресурсы внутрь StopItem для перевода валюты
                 stopItems.add(new StopItem(allStops.get(i), price, resources.getString("currency")));
             }
             stopComboBox.setItems(FXCollections.observableArrayList(stopItems));
@@ -225,19 +207,21 @@ public class TicketSellController implements Initializable {
                 return;
             }
 
-            if (!lastName.matches("^[А-ЯЁ][а-яё]*(-[А-ЯЁ][а-яё]*)?$") || !firstName.matches("^[А-ЯЁ][а-яё]*$")) {
+            // Используем централизованную проверку ФИО из хелпера
+            if (!UIValidationHelper.isFioValid(lastName) || !UIValidationHelper.isFioValid(firstName)) {
                 showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.fio"));
                 highlightField(tfLastName);
                 highlightField(tfFirstName);
                 return;
             }
-            if (!middleName.isEmpty() && !middleName.matches("^[А-ЯЁ][а-яё]*$")) {
+            if (!middleName.isEmpty() && !UIValidationHelper.isFioValid(middleName)) {
                 showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.middlename"));
                 highlightField(tfMiddleName);
                 return;
             }
 
-            if (passport.length() != 11) {
+            // Используем централизованную проверку паспорта из хелпера
+            if (!UIValidationHelper.isPassportValid(passport)) {
                 showAlert(Alert.AlertType.ERROR, resources.getString("alert.error.fill_title"), resources.getString("sell.validation.passport"));
                 highlightField(tfPassport);
                 return;
@@ -261,7 +245,6 @@ public class TicketSellController implements Initializable {
             String depDate = selectedTrip.getDepartureDatetime().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
             String fullPassengerName = lastName + " " + firstName + (!middleName.isEmpty() ? " " + middleName : "");
 
-            // Локализованный заголовок паспорта внутри чека
             String passPrefix = resources.getString("col.passport");
             showReceipt(regNumber, fullPassengerName + " (" + passPrefix + ": " + passport + ")",
                     selectedTrip.getRoute().getDeparturePoint() + " - " + selectedTrip.getRoute().getDestinationPoint(),
@@ -336,7 +319,6 @@ public class TicketSellController implements Initializable {
 
         @Override
         public String toString() {
-            // ИСПРАВЛЕНО: Теперь валюта подтягивается из ресурсов
             return stop.getName() + " — " + price + " " + currencyStr;
         }
     }

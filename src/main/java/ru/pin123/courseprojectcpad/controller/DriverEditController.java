@@ -48,7 +48,7 @@ public class DriverEditController {
     @FXML
     public void initialize() {
         logger.debug("Инициализация формы редактирования водителя. Настройка маски для паспорта.");
-        setupPassportField(tfPassport);
+        ru.pin123.courseprojectcpad.util.UIValidationHelper.setupPassportMask(tfPassport);
     }
 
     public void setDialogStage(Stage dialogStage) {
@@ -141,32 +141,6 @@ public class DriverEditController {
     @FXML
     private void handleCancel() {
         dialogStage.close();
-    }
-
-    /**
-     * Настраивает автоматическую маску ввода для поля паспортных данных.
-     * Форматирует ввод в вид "0000 000000".
-     */
-    private void setupPassportField(TextField textField) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue == null || newValue.isEmpty()) return;
-
-            String digits = newValue.replaceAll("[^\\d]", "");
-
-            if (digits.length() > 10) {
-                digits = digits.substring(0, 10);
-            }
-
-            StringBuilder formatted = new StringBuilder(digits);
-            if (formatted.length() > 4) {
-                formatted.insert(4, " ");
-            }
-
-            if (!newValue.equals(formatted.toString())) {
-                textField.setText(formatted.toString());
-                Platform.runLater(textField::end);
-            }
-        });
     }
 
     /**
